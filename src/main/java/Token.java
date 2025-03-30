@@ -1,9 +1,9 @@
 import static java.lang.Math.sqrt;
 
 public class Token {
-    private int[] token;
+    private Integer[] token;
 
-    Token(int[] token) {
+    Token(Integer[] token) {
         this.token = token;
     }
 

@@ -6,7 +6,7 @@ public class Processor {
     float beta; // Same active token ratio threshold
     float theta; // Total token ratio threshold
     float eta; // Block similarity threshold
-    int k;
+    int k; // Index n-gram size
     Processor(int k, float phi, float beta, float theta, float eta) {
         this.k = k;
         this.phi = phi;

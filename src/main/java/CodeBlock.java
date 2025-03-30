@@ -14,6 +14,10 @@ public class CodeBlock {
     private Vector<String> activeTokens;
     private int id;
 
+    private int tokensNum;
+
+    private CodeBlockInfo info;
+
     CodeBlock(int id) {
         activeTokens = new Vector<>();
         vars = new TokenCollection();
@@ -98,10 +102,6 @@ public class CodeBlock {
         return id;
     }
 
-    int tokensNum() {
-        return activeTokens.size() + vars.size() + ops.size() + callees.size();
-    }
-
     int activeTokensOverlap(CodeBlock other) {
         Set<String> tokens = new HashSet<>(activeTokens);
         int cnt = 0;
@@ -114,8 +114,8 @@ public class CodeBlock {
     }
 
     boolean shouldBeFiltered(CodeBlock other, float beta, float theta) {
-        int targetTokens = tokensNum();
-        int candidateTokens = other.tokensNum();
+        int targetTokens = tokensNum;
+        int candidateTokens = other.tokensNum;
         float tokenRatio = min(targetTokens, candidateTokens) / (float) max(targetTokens, candidateTokens);
         if (tokenRatio < theta) {
             return true;
@@ -126,4 +126,16 @@ public class CodeBlock {
         return overlapRatio < beta;
     }
 
+
+    void setInfo(CodeBlockInfo info) {
+        this.info = info;
+    }
+
+    CodeBlockInfo getInfo() {
+        return info;
+    }
+
+    void setTokensNum(int tokens) {
+        tokensNum = tokens;
+    }
 }
