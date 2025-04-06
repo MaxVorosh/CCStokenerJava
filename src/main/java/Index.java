@@ -1,16 +1,19 @@
 import java.util.*;
 
 public class Index {
-    private Map<Integer, Vector<CodeBlock>> index;
+    Set<Integer> hashes;
     int k; // Parameter for active token n-grams
 
     Index(int k) {
-        index = new HashMap<>();
+        hashes = new HashSet<>();
         this.k = k;
     }
 
     void addBlock(CodeBlock block) {
+        System.out.println("OK");
+        FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
+        System.out.println(tokens.size());
         if (tokens.size() < k) {
             return;
         }
@@ -20,16 +23,17 @@ public class Index {
             window.push(tokens.get(i));
         }
         int h = window.hashCode();
-        addBlockDirect(h, block);
+        fw.addBlockDirect(h, block);
         for (int i = k; i < tokens.size(); ++i) {
             window.pollFirst();
             window.push(tokens.get(i));
             h = window.hashCode();
-            addBlockDirect(h, block);
+            fw.addBlockDirect(h, block);
         }
     }
 
     Vector<CodeBlock> getBlocks(Vector<String> tokens) {
+        FileWorker fw = new FileWorker();
         Set<CodeBlock> usedBlocks = new HashSet<>();
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
@@ -41,8 +45,8 @@ public class Index {
             window.push(tokens.get(i));
         }
         int h = window.hashCode();
-        if (index.containsKey(h)) {
-            Vector<CodeBlock> blocks = index.get(h);
+        if (hashes.contains(h)) {
+            Vector<CodeBlock> blocks = fw.readBlocks(h);
             for (CodeBlock block : blocks) {
                 if (!usedBlocks.contains(block)) {
                     usedBlocks.add(block);
@@ -51,12 +55,5 @@ public class Index {
             }
         }
         return v;
-    }
-
-    private void addBlockDirect(int key, CodeBlock value) {
-        index.putIfAbsent(key, new Vector<>());
-        Vector<CodeBlock> data = index.get(key);
-        data.add(value);
-        index.put(key, data);
     }
 }

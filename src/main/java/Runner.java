@@ -4,7 +4,7 @@ public class Runner {
     public static void main(String[] args) {
         System.out.println("Started");
         FileWorker worker = new FileWorker();
-        Processor processor = new Processor(3, 0.1f, 0.5f, 0.4f, 0.65f); // Didn't find k value in paper
+        Processor processor = new Processor(1, 0.1f, 0.5f, 0.4f, 0.65f); // Didn't find k value in paper
 
         Vector<CodeBlock> blocks = worker.parseDir(args[0]);
         Vector<ClonePair> clones = processor.getClonePairs(blocks);

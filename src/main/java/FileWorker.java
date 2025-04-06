@@ -2,8 +2,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Vector;
+import java.util.stream.Stream;
 
 
 public class FileWorker {
@@ -101,7 +103,8 @@ public class FileWorker {
                         currentBlock.addActiveToken(name);
                     }
                     else {
-                        collection.add(new Token(token));
+
+                        collection.add(new Token(Arrays.stream(token).mapToInt(Integer::intValue).toArray()));
                     }
                 }
             }
@@ -122,6 +125,102 @@ public class FileWorker {
             fw.flush();
         } catch (IOException e) {
             System.err.println("Can't create report file");
+        }
+    }
+
+    void addBlockDirect(int key, CodeBlock value) {
+        String path = String.format("./index/%d", key);
+        try {
+            FileWriter fw = new FileWriter(path);
+            fw.write(String.format("New %d\n", value.hashCode()));
+            for (String token : value.getActiveTokens()) {
+                fw.write(String.format("%s ", token));
+            }
+            fw.write("\nVars\n");
+            fw.write(value.collectionSize(CollectionType.VAR) + "\n");
+            for (int i = 0; i < value.collectionSize(CollectionType.VAR); ++i) {
+                String tokenStr = value.getToken(i, CollectionType.VAR).toString();
+                fw.write(String.format("%s\n", tokenStr));
+            }
+            fw.write("Operations\n");
+            fw.write(value.collectionSize(CollectionType.OPERATION) + "\n");
+            for (int i = 0; i < value.collectionSize(CollectionType.OPERATION); ++i) {
+                String tokenStr = value.getToken(i, CollectionType.OPERATION).toString();
+                fw.write(String.format("%s\n", tokenStr));
+            }
+            fw.write("Callees\n");
+            fw.write(value.collectionSize(CollectionType.CALLEE) + "\n");
+            for (int i = 0; i < value.collectionSize(CollectionType.CALLEE); ++i) {
+                String tokenStr = value.getToken(i, CollectionType.CALLEE).toString();
+                fw.write(String.format("%s\n", tokenStr));
+            }
+            fw.flush();
+        }
+        catch (IOException e) {
+            System.err.println("Exception occured");
+        }
+    }
+
+    Vector<CodeBlock> readBlocks(int key) {
+        String path = String.format("./index/%d", key);
+        File file = new File(path);
+        CodeBlock currentBlock = new CodeBlock(-1);
+        TokenCollection collection = new TokenCollection();
+        Vector<CodeBlock> blocks = new Vector<>();
+        int cnt = -1;
+        ParseStage stage = ParseStage.CALLEE;
+        try {
+            Scanner sc = new Scanner(file);
+
+            while (sc.hasNextLine()) {
+                String line = sc.nextLine();
+                line = line.strip();
+                if (line.startsWith("New")) {
+                    int id = Integer.parseInt(line.split(" ")[1]);
+                    currentBlock = new CodeBlock(id);
+                    stage = ParseStage.ACTIVE;
+                }
+                else if (line.startsWith("Vars")) {
+                    stage = ParseStage.VAR;
+                }
+                else if (line.startsWith("Operations")) {
+                    stage = ParseStage.OPERATION;
+                }
+                else if (line.startsWith("Callees")) {
+                    stage = ParseStage.CALLEE;
+                }
+                else if (stage == ParseStage.ACTIVE) {
+                    String[] active = line.split(" ");
+                    for (String token : active) {
+                        currentBlock.addActiveToken(token);
+                    }
+                }
+                else if (cnt == -1) {
+                    cnt = Integer.parseInt(line);
+                }
+                else {
+                    cnt -= 1;
+                    int[] tokenArray = Stream.of(line.split(" ")).mapToInt(Integer::parseInt).toArray();
+                    collection.add(new Token(tokenArray));
+                    if (cnt == 0) {
+                        cnt = -1;
+                        if (stage == ParseStage.VAR) {
+                            currentBlock.setCollection(collection, CollectionType.VAR);
+                        }
+                        else if (stage == ParseStage.OPERATION) {
+                            currentBlock.setCollection(collection, CollectionType.OPERATION);
+                        }
+                        else {
+                            currentBlock.setCollection(collection, CollectionType.CALLEE);
+                            blocks.add(currentBlock);
+                        }
+                    }
+                }
+            }
+            return blocks;
+        } catch (FileNotFoundException e) {
+            System.out.println("File not found");
+            return new Vector<>();
         }
     }
 }
