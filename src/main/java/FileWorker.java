@@ -108,6 +108,7 @@ public class FileWorker {
                     }
                 }
             }
+            sc.close();
         } catch (FileNotFoundException e) {
             System.err.println("File " + file.toString() + " not found");
         }
@@ -123,13 +124,14 @@ public class FileWorker {
                         p2.filename + " " + p2.startLine + " " + p2.endLine + "\n");
             }
             fw.flush();
+            fw.close();
         } catch (IOException e) {
             System.err.println("Can't create report file");
         }
     }
 
-    void addBlockDirect(int key, CodeBlock value) {
-        String path = String.format("./index/%d", key);
+    void addBlockDirect(String pathDir, int key, CodeBlock value) {
+        String path = String.format("%s/%d", pathDir, key);
         try {
             FileWriter fw = new FileWriter(path, true);
             fw.write(String.format("New %d\n", value.hashCode()));
@@ -155,19 +157,20 @@ public class FileWorker {
                 fw.write(String.format("%s\n", tokenStr));
             }
             fw.flush();
+            fw.close();
         }
         catch (IOException e) {
             System.err.println("Exception occured");
         }
     }
 
-    Vector<CodeBlock> readBlocks(int key) {
-        String path = String.format("./index/%d", key);
+    Vector<CodeBlock> readBlocks(String pathDir, int key) {
+        String path = String.format("%s/%d", pathDir, key);
         File file = new File(path);
         CodeBlock currentBlock = new CodeBlock(-1);
         TokenCollection collection = new TokenCollection();
         Vector<CodeBlock> blocks = new Vector<>();
-        int cnt = -1;
+        int cnt = 0;
         ParseStage stage = ParseStage.CALLEE;
         try {
             Scanner sc = new Scanner(file);
@@ -175,11 +178,10 @@ public class FileWorker {
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 line = line.strip();
-                if (line.startsWith("New")) {
+                if (line.startsWith("New") && stage == ParseStage.CALLEE) {
                     int id = Integer.parseInt(line.split(" ")[1]);
                     currentBlock = new CodeBlock(id);
                     stage = ParseStage.ACTIVE;
-                    cnt = -1;
                 }
                 else if (line.startsWith("Vars")) {
                     stage = ParseStage.VAR;
@@ -196,7 +198,7 @@ public class FileWorker {
                         currentBlock.addActiveToken(token);
                     }
                 }
-                else if (cnt == -1) {
+                else if (cnt == 0) {
                     cnt = Integer.parseInt(line);
                     if (cnt == 0 && stage == ParseStage.CALLEE) {
                         blocks.add(currentBlock);
@@ -207,7 +209,6 @@ public class FileWorker {
                     int[] tokenArray = Stream.of(line.split(" ")).mapToInt(Integer::parseInt).toArray();
                     collection.add(new Token(tokenArray));
                     if (cnt == 0) {
-                        cnt = -1;
                         if (stage == ParseStage.VAR) {
                             currentBlock.setCollection(collection, CollectionType.VAR);
                         }
@@ -221,6 +222,7 @@ public class FileWorker {
                     }
                 }
             }
+            sc.close();
             return blocks;
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
@@ -231,8 +233,10 @@ public class FileWorker {
     void updateDir(String path) {
         File dir = new File(path);
         File[] listOfFiles = dir.listFiles();
-        for (File file : listOfFiles) {
-            file.delete();
+        if (listOfFiles != null) {
+            for (File file : listOfFiles) {
+                file.delete();
+            }
         }
     }
 }

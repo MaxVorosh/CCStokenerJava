@@ -3,12 +3,14 @@ import java.util.*;
 public class Index {
     Set<Integer> hashes;
     int k; // Parameter for active token n-grams
+    String pathDir;
 
-    Index(int k) {
+    Index(String pathDir, int k) {
         hashes = new HashSet<>();
         this.k = k;
         FileWorker fw = new FileWorker();
-        fw.updateDir("./index");
+        fw.updateDir(pathDir);
+        this.pathDir = pathDir;
     }
 
     void addBlock(CodeBlock block) {
@@ -24,12 +26,12 @@ public class Index {
         }
         int h = String.join(" ", window).hashCode();
         hashes.add(h);
-        fw.addBlockDirect(h, block);
+        fw.addBlockDirect(pathDir, h, block);
         for (int i = k; i < tokens.size(); ++i) {
             window.remove(0);
             window.add(tokens.get(i));
             h = String.join(" ", window).hashCode();
-            fw.addBlockDirect(h, block);
+            fw.addBlockDirect(pathDir, h, block);
             hashes.add(h);
         }
     }
@@ -48,7 +50,7 @@ public class Index {
         }
         int h = String.join(" ", window).hashCode();
         if (hashes.contains(h)) {
-            Vector<CodeBlock> blocks = fw.readBlocks(h);
+            Vector<CodeBlock> blocks = fw.readBlocks(pathDir, h);
             for (CodeBlock block : blocks) {
                 if (!usedBlocks.contains(block.hashCode())) {
                     usedBlocks.add(block.hashCode());
@@ -61,7 +63,7 @@ public class Index {
             window.add(tokens.get(i));
             h = String.join(" ", window).hashCode();
             if (hashes.contains(h)) {
-                Vector<CodeBlock> blocks = fw.readBlocks(h);
+                Vector<CodeBlock> blocks = fw.readBlocks(pathDir, h);
                 for (CodeBlock block : blocks) {
                     if (!usedBlocks.contains(block.hashCode())) {
                         usedBlocks.add(block.hashCode());
