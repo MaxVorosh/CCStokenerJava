@@ -7,50 +7,66 @@ public class Index {
     Index(int k) {
         hashes = new HashSet<>();
         this.k = k;
+        FileWorker fw = new FileWorker();
+        fw.updateDir("./index");
     }
 
     void addBlock(CodeBlock block) {
-        System.out.println("OK");
         FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
-        System.out.println(tokens.size());
         if (tokens.size() < k) {
             return;
         }
         tokens.sort(null);
-        Deque<String> window = new ArrayDeque<>();
+        Vector<String> window = new Vector<>();
         for (int i = 0; i < k; ++i) {
-            window.push(tokens.get(i));
+            window.add(tokens.get(i));
         }
-        int h = window.hashCode();
+        int h = String.join(" ", window).hashCode();
+        hashes.add(h);
         fw.addBlockDirect(h, block);
         for (int i = k; i < tokens.size(); ++i) {
-            window.pollFirst();
-            window.push(tokens.get(i));
-            h = window.hashCode();
+            window.remove(0);
+            window.add(tokens.get(i));
+            h = String.join(" ", window).hashCode();
             fw.addBlockDirect(h, block);
+            hashes.add(h);
         }
     }
 
     Vector<CodeBlock> getBlocks(Vector<String> tokens) {
         FileWorker fw = new FileWorker();
-        Set<CodeBlock> usedBlocks = new HashSet<>();
+        Set<Integer> usedBlocks = new HashSet<>();
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
             return v;
         }
         tokens.sort(null);
-        Deque<String> window = new ArrayDeque<>();
+        Vector<String> window = new Vector<>();
         for (int i = 0; i < k; ++i) {
-            window.push(tokens.get(i));
+            window.add(tokens.get(i));
         }
-        int h = window.hashCode();
+        int h = String.join(" ", window).hashCode();
         if (hashes.contains(h)) {
             Vector<CodeBlock> blocks = fw.readBlocks(h);
             for (CodeBlock block : blocks) {
-                if (!usedBlocks.contains(block)) {
-                    usedBlocks.add(block);
+                if (!usedBlocks.contains(block.hashCode())) {
+                    usedBlocks.add(block.hashCode());
                     v.add(block);
+                }
+            }
+        }
+        for (int i = k; i < tokens.size(); ++i) {
+            window.remove(0);
+            window.add(tokens.get(i));
+            h = String.join(" ", window).hashCode();
+            if (hashes.contains(h)) {
+                Vector<CodeBlock> blocks = fw.readBlocks(h);
+                for (CodeBlock block : blocks) {
+                    if (!usedBlocks.contains(block.hashCode())) {
+                        usedBlocks.add(block.hashCode());
+                        v.add(block);
+                    }
                 }
             }
         }

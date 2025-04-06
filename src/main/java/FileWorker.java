@@ -131,7 +131,7 @@ public class FileWorker {
     void addBlockDirect(int key, CodeBlock value) {
         String path = String.format("./index/%d", key);
         try {
-            FileWriter fw = new FileWriter(path);
+            FileWriter fw = new FileWriter(path, true);
             fw.write(String.format("New %d\n", value.hashCode()));
             for (String token : value.getActiveTokens()) {
                 fw.write(String.format("%s ", token));
@@ -179,6 +179,7 @@ public class FileWorker {
                     int id = Integer.parseInt(line.split(" ")[1]);
                     currentBlock = new CodeBlock(id);
                     stage = ParseStage.ACTIVE;
+                    cnt = -1;
                 }
                 else if (line.startsWith("Vars")) {
                     stage = ParseStage.VAR;
@@ -197,6 +198,9 @@ public class FileWorker {
                 }
                 else if (cnt == -1) {
                     cnt = Integer.parseInt(line);
+                    if (cnt == 0 && stage == ParseStage.CALLEE) {
+                        blocks.add(currentBlock);
+                    }
                 }
                 else {
                     cnt -= 1;
@@ -221,6 +225,14 @@ public class FileWorker {
         } catch (FileNotFoundException e) {
             System.out.println("File not found");
             return new Vector<>();
+        }
+    }
+
+    void updateDir(String path) {
+        File dir = new File(path);
+        File[] listOfFiles = dir.listFiles();
+        for (File file : listOfFiles) {
+            file.delete();
         }
     }
 }
