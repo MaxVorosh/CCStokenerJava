@@ -134,7 +134,8 @@ public class FileWorker {
         String path = String.format("%s/%d", pathDir, key);
         try {
             FileWriter fw = new FileWriter(path, true);
-            fw.write(String.format("New %d\n", value.hashCode()));
+            CodeBlockInfo info = value.getInfo();
+            fw.write(String.format("New %d %d %s %d %d\n", value.hashCode(), value.getTokensNum(), info.filename, info.startLine, info.endLine));
             for (String token : value.getActiveTokens()) {
                 fw.write(String.format("%s ", token));
             }
@@ -179,8 +180,15 @@ public class FileWorker {
                 String line = sc.nextLine();
                 line = line.strip();
                 if (line.startsWith("New") && stage == ParseStage.CALLEE) {
-                    int id = Integer.parseInt(line.split(" ")[1]);
+                    String[] data = line.split(" ");
+                    int id = Integer.parseInt(data[1]);
+                    int tokensNum = Integer.parseInt(data[2]);
+                    String blockPath = data[3];
+                    int startLine = Integer.parseInt(data[4]);
+                    int endLine = Integer.parseInt(data[5]);
                     currentBlock = new CodeBlock(id);
+                    currentBlock.setInfo(new CodeBlockInfo(blockPath, startLine, endLine));
+                    currentBlock.setTokensNum(tokensNum);
                     stage = ParseStage.ACTIVE;
                 }
                 else if (line.startsWith("Vars")) {

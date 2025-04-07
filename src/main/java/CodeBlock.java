@@ -138,4 +138,8 @@ public class CodeBlock {
     void setTokensNum(int tokens) {
         tokensNum = tokens;
     }
+
+    int getTokensNum() {
+        return tokensNum;
+    }
 }
