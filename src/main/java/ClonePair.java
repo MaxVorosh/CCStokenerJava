@@ -1,8 +1,8 @@
 public class ClonePair {
-    CodeBlock first;
-    CodeBlock second;
+    CodeBlockInfo first;
+    CodeBlockInfo second;
 
-    ClonePair(CodeBlock first, CodeBlock second) {
+    ClonePair(CodeBlockInfo first, CodeBlockInfo second) {
         this.first = first;
         this.second = second;
     }

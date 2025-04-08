@@ -67,7 +67,7 @@ public class Processor {
                 float sim = (varSim + operationSim + calleeSim) / 3;
 
                 if (sim > eta) {
-                    pairs.add(new ClonePair(block, otherBlock));
+                    pairs.add(new ClonePair(block.getInfo(), otherBlock.getInfo()));
                 }
             }
         }

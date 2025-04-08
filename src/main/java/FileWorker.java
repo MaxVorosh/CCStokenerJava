@@ -118,8 +118,8 @@ public class FileWorker {
         try {
             FileWriter fw = new FileWriter(path);
             for (ClonePair pair : clones) {
-                CodeBlockInfo p1 = pair.first.getInfo();
-                CodeBlockInfo p2 = pair.second.getInfo();
+                CodeBlockInfo p1 = pair.first;
+                CodeBlockInfo p2 = pair.second;
                 fw.write(p1.filename + " " + p1.startLine + " " + p1.endLine + " " +
                         p2.filename + " " + p2.startLine + " " + p2.endLine + "\n");
             }
