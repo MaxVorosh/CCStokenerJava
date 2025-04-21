@@ -7,4 +7,8 @@ public class ASTNode {
     ASTNode() {
         children = new Vector<>();
     }
+
+    String getMetaInfo() {
+        return "";
+    }
 }
