@@ -4,6 +4,7 @@ import ch.usi.si.seart.treesitter.printer.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Vector;
 
 public class ASTBuilder {
 
@@ -11,36 +12,75 @@ public class ASTBuilder {
         LibraryLoader.load();
     }
     public static void main(String[] args) {
-        String path = "./code_examples/GCD.java";
+        // String path = "./code_examples/GCD.java";
+        // buildAsts(path, Language.JAVA);
+    }
+
+    public ASTNode buildAsts(String path, Language lang) {
         File code_file = new File(path);
-        StringBuilder text = new StringBuilder();
+        Vector<String> text = new Vector<>();
         try {
             Scanner sc = new Scanner(code_file);
             while (sc.hasNextLine()) {
-                text.append(sc.nextLine());
-                text.append("\n");
+                text.add(sc.nextLine());
             }
-        } catch (FileNotFoundException e) {}
-        System.out.println(text);
+            sc.close();
+        } catch (FileNotFoundException e) {
+            return null;
+        }
+
+        String ast;
         try {
-            System.out.println("Aboba");
-            Parser parser = Parser.getFor(Language.JAVA);
-            System.out.println(parser.getLanguage());
+            Parser parser = Parser.getFor(lang);
             Tree tree = parser.parse(text.toString());
             TreeCursor cursor = tree.getRootNode().walk();
             SyntaxTreePrinter printer = new SyntaxTreePrinter(cursor);
-            String actual = printer.print();
-            System.out.println(actual);
-//            String expected =
-//                    "module [0:0] - [0:11]\n" +
-//                            "  expression_statement [0:0] - [0:11]\n" +
-//                            "    call [0:0] - [0:11]\n" +
-//                            "      function: identifier [0:0] - [0:5]\n" +
-//                            "      arguments: argument_list [0:5] - [0:11]\n" +
-//                            "        string [0:6] - [0:10]\n";
-//            assert expected.equals(actual);
+            ast = printer.print();
         } catch (Exception ex) {
-            // ...
+            return null;
         }
+        ASTNode startNode = null;
+        ASTNode curNode = null;
+        String[] astLines = ast.split("\n");
+        int level = 0;
+        for (String line : astLines) {
+            int currentLevel = getLevel(line);
+            ASTNode newNode = parseLine(lang, text, line);
+            if (newNode == null) {
+                continue;
+            }
+            if (startNode == null) {
+                startNode = newNode;
+                curNode = startNode;
+                level = currentLevel;
+            }
+            else {
+                while (currentLevel - 1 != level) {
+                    curNode = curNode.parent;
+                }
+                curNode.children.add(newNode);
+                curNode = newNode;
+            }
+        }
+        return startNode;
+    }
+
+    private ASTNode parseLine(Language lang, Vector<String> text, String line) {
+        if (lang == Language.JAVA) {
+            return parseJavaLine(text, line);
+        }
+        return null;
+    }
+
+    private ASTNode parseJavaLine(Vector<String> text, String line) {
+        return null;
+    }
+
+    private int getLevel(String line) {
+        int c = 0;
+        while (c < line.length() && line.charAt(c) == ' ') {
+            c++;
+        }
+        return c / 2;
     }
 }
