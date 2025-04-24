@@ -12,6 +12,7 @@ import java.util.Map;
 public class ASTBuilder {
 
     Map<String, Language> langDict;
+    Map<String, NodeType> opTypes;
 
     static {
         LibraryLoader.load();
@@ -20,6 +21,16 @@ public class ASTBuilder {
     ASTBuilder() {
         langDict = new HashMap<>();
         langDict.put("java", Language.JAVA);
+
+        String[] logical = new String[]{">", "<", ">=", "<=", "==", "!="};
+        String[] conditional = new String[]{"|", "||", "&", "&&", "^", "!"};
+        opTypes = new HashMap<>();
+        for (String log : logical) {
+            opTypes.put(log, NodeType.LOGICAL_EXPR);
+        }
+        for (String cond : conditional) {
+            opTypes.put(cond, NodeType.CONDITION_EXPR);
+        }
     }
 
     public ASTNode buildAsts(String path, String langName) {
@@ -80,13 +91,30 @@ public class ASTBuilder {
 
     private void updateAST(ASTNode root, Language lang) {
         if (lang == Language.JAVA) {
-            updateASTJava(root);
+            updateASTJava(root, 0);
             return;
         }
     }
 
-    private void updateASTJava(ASTNode root) {
-        return;
+    private void updateASTJava(ASTNode root, int index) {
+        String info = root.getMetaInfo();
+        if (info.startsWith("expr")) {
+            String op = info.split(" ")[1];
+            NodeType type = NodeType.NUMERIC_EXPR;
+            if (opTypes.containsKey(op)) {
+                type = opTypes.get(op);
+            }
+            ASTNode node = new InnerNode(type);
+            node.parent = root.parent;
+            node.parent.children.set(index, node);
+            for (ASTNode child : root.children) {
+                node.children.add(child);
+            }
+            root = node;
+        }
+        for (int i = 0; i < root.children.size(); ++i) {
+            updateASTJava(root.children.get(i), i);
+        }
     }
 
     private ASTNode parseLine(Language lang, Vector<String> text, String line, ASTNode prevNode) {
@@ -109,7 +137,7 @@ public class ASTBuilder {
             }
             else {
                 int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                prevNode.setMetaInfo(text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+                prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
             }
             args = Arrays.copyOfRange(args, 1, args.length);
             type = args[0];
