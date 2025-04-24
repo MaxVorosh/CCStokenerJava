@@ -61,11 +61,7 @@ public class ASTBuilder {
                 curNode = curNode.parent;
                 level--;
             }
-            String lastInfo = "";
-            if (curNode != null) {
-                lastInfo = curNode.getMetaInfo();
-            }
-            ASTNode newNode = parseLine(lang, text, line, lastInfo);
+            ASTNode newNode = parseLine(lang, text, line, curNode);
             if (startNode == null) {
                 startNode = newNode;
                 curNode = startNode;
@@ -78,20 +74,43 @@ public class ASTBuilder {
                 level = currentLevel;
             }
         }
+        updateAST(startNode, lang);
         return startNode;
     }
 
-    private ASTNode parseLine(Language lang, Vector<String> text, String line, String prevType) {
+    private void updateAST(ASTNode root, Language lang) {
         if (lang == Language.JAVA) {
-            return parseJavaLine(text, line, prevType);
+            updateASTJava(root);
+            return;
+        }
+    }
+
+    private void updateASTJava(ASTNode root) {
+        return;
+    }
+
+    private ASTNode parseLine(Language lang, Vector<String> text, String line, ASTNode prevNode) {
+        if (lang == Language.JAVA) {
+            return parseJavaLine(text, line, prevNode);
         }
         return null;
     }
 
-    private ASTNode parseJavaLine(Vector<String> text, String line, String prevType) {
+    private ASTNode parseJavaLine(Vector<String> text, String line, ASTNode prevNode) {
         String[] args = line.split(" ");
         String type = args[0];
         if (type == "left:" || type == "right:") {
+            String from = args[args.length - 3];
+            String to = args[args.length - 1];
+            String[] prevArgs = prevNode.getMetaInfo().split(" ");
+            if (type == "left:") {
+                prevArgs[prevArgs.length - 3] = to;
+                prevNode.setMetaInfo(String.join(" ", prevArgs));
+            }
+            else {
+                int[] r = getRange(prevArgs[prevArgs.length - 3], from);
+                prevNode.setMetaInfo(text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+            }
             args = Arrays.copyOfRange(args, 1, args.length);
             type = args[0];
         }
@@ -101,29 +120,50 @@ public class ASTBuilder {
             case "assignment_expression":
                 return new InnerNode(NodeType.ASSIGN_EXPR);
             case "identifier":
-                String[] pos1 = args[1].substring(1, args[1].length() - 1).split(":");
-                String[] pos2 = args[3].substring(1, args[3].length() - 1).split(":");
-                int lineNumber = Integer.parseInt(pos1[0]);
-                int start = Integer.parseInt(pos1[1]);
-                int end = Integer.parseInt(pos2[1]);
-                String name = text.get(lineNumber).substring(start, end);
+                int[] r = getRange(args[1], args[3]);
+                String name = text.get(r[0]).substring(r[1], r[2]);
                 return new IdentifierNode(name);
             case "program":
                 return new InnerNode(NodeType.ENTRY);
             case "condition:":
-                switch (prevType) {
+                switch (prevNode.getMetaInfo()) {
                     case "if_statement":
                         return new InnerNode(NodeType.IF_COND);
                     case "while_statement":
                         return new InnerNode(NodeType.LOOP_COND);
+                    case "switch_expression":
+                        return new InnerNode(NodeType.SWITCH_CONDITION);
                 }
                 return new UnknownNode(args[1]);
             case "body:":
-                return new InnerNode(NodeType.LOOP_BODY);
+                if (prevNode instanceof InnerNode) {
+                    switch (((InnerNode)prevNode).type) {
+                        case LOOP_COND:
+                            return new InnerNode(NodeType.LOOP_BODY);
+                        default:
+                            return new UnknownNode(type);
+                    }
+                }
+                if (prevNode.getMetaInfo() == "switch_expression") {
+                    return new InnerNode(NodeType.SWITCH_BODY);
+                }
+                return new UnknownNode(type);
             case "consequence:":
                 return new InnerNode(NodeType.IF_ELSE_BODY);
             case "alternative:":
                 return new InnerNode(NodeType.IF_ELSE_BODY);
+            case "local_variable_declaration":
+                return new InnerNode(NodeType.VAR_DECL);
+            case "binary_expression":
+                return new UnknownNode(line);
+            case "array_access":
+                return new InnerNode(NodeType.ARRAY_SELECTOR);
+            case "method_invocation":
+                return new InnerNode(NodeType.METHOD_INVOC);
+            case "return_statement":
+                return new InnerNode(NodeType.RETURN_STMT);
+            case "switch_block_statement_group":
+                return new InnerNode(NodeType.CASE_BODY);
         }
         return new UnknownNode(type);
     }
@@ -134,5 +174,14 @@ public class ASTBuilder {
             c++;
         }
         return c / 2;
+    }
+
+    private int[] getRange(String s1, String s2) {
+        String[] pos1 = s1.substring(1, s1.length() - 1).split(":");
+        String[] pos2 = s2.substring(1, s2.length() - 1).split(":");
+        int lineNumber = Integer.parseInt(pos1[0]);
+        int start = Integer.parseInt(pos1[1]);
+        int end = Integer.parseInt(pos2[1]);
+        return new int[]{lineNumber, start, end};
     }
 }

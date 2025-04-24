@@ -11,4 +11,6 @@ public class ASTNode {
     String getMetaInfo() {
         return "";
     }
+
+    void setMetaInfo(String s) {}
 }

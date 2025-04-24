@@ -10,4 +10,9 @@ public class UnknownNode extends ASTNode{
     String getMetaInfo() {
         return type;
     }
+
+    @Override
+    void setMetaInfo(String s) {
+        type = s;
+    }
 }
