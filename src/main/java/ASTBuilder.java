@@ -13,6 +13,7 @@ public class ASTBuilder {
 
     Map<String, Language> langDict;
     Map<String, NodeType> opTypes;
+    Map<String, NodeType> nodeTypes;
 
     static {
         LibraryLoader.load();
@@ -31,6 +32,28 @@ public class ASTBuilder {
         for (String cond : conditional) {
             opTypes.put(cond, NodeType.CONDITION_EXPR);
         }
+
+        nodeTypes = new HashMap<>();
+        fillTypes();
+    }
+
+    private void fillTypes() {
+        nodeTypes.put("method_declaration", NodeType.METHOD_DEF);
+        nodeTypes.put("assignment_expression", NodeType.ASSIGN_EXPR);
+        nodeTypes.put("program", NodeType.ENTRY);
+        nodeTypes.put("consequence:", NodeType.IF_ELSE_BODY);
+        nodeTypes.put("alternative:", NodeType.IF_ELSE_BODY);
+        nodeTypes.put("local_variable_declaration", NodeType.VAR_DECL);
+        nodeTypes.put("array_access", NodeType.ARRAY_SELECTOR);
+        nodeTypes.put("method_invocation", NodeType.METHOD_INVOC);
+        nodeTypes.put("return_statement", NodeType.RETURN_STMT);
+        nodeTypes.put("switch_block_statement_group", NodeType.CASE_BODY);
+        nodeTypes.put("throw_statement", NodeType.THROW_BODY);
+        nodeTypes.put("catch_close", NodeType.CATCH_BODY);
+        nodeTypes.put("finally_close", NodeType.FINALLY_BODY);
+        nodeTypes.put("array_creation_expression", NodeType.CLASS_ARRAY_CREATOR);
+        nodeTypes.put("object_creation_expression", NodeType.CLASS_ARRAY_CREATOR);
+        nodeTypes.put("lambda_expression", NodeType.LAMBDA_EXPR);
     }
 
     public ASTNode buildAsts(String path, String langName) {
@@ -155,17 +178,14 @@ public class ASTBuilder {
             args = Arrays.copyOfRange(args, 1, args.length);
             type = args[0];
         }
+        if (nodeTypes.containsKey(type)) {
+            return new InnerNode(nodeTypes.get(type));
+        }
         switch (type) {
-            case "method_declaration":
-                return new InnerNode(NodeType.METHOD_DEF);
-            case "assignment_expression":
-                return new InnerNode(NodeType.ASSIGN_EXPR);
             case "identifier":
                 int[] r = getRange(args[1], args[3]);
                 String name = text.get(r[0]).substring(r[1], r[2]);
                 return new IdentifierNode(name);
-            case "program":
-                return new InnerNode(NodeType.ENTRY);
             case "condition:":
                 switch (prevNode.getMetaInfo()) {
                     case "if_statement":
@@ -192,34 +212,8 @@ public class ASTBuilder {
                         return new InnerNode(NodeType.TRY_BODY);
                 }
                 return new UnknownNode(type);
-            case "consequence:":
-                return new InnerNode(NodeType.IF_ELSE_BODY);
-            case "alternative:":
-                return new InnerNode(NodeType.IF_ELSE_BODY);
-            case "local_variable_declaration":
-                return new InnerNode(NodeType.VAR_DECL);
             case "binary_expression":
                 return new UnknownNode(line);
-            case "array_access":
-                return new InnerNode(NodeType.ARRAY_SELECTOR);
-            case "method_invocation":
-                return new InnerNode(NodeType.METHOD_INVOC);
-            case "return_statement":
-                return new InnerNode(NodeType.RETURN_STMT);
-            case "switch_block_statement_group":
-                return new InnerNode(NodeType.CASE_BODY);
-            case "throw_statement":
-                return new InnerNode(NodeType.THROW_BODY);
-            case "catch_close":
-                return new InnerNode(NodeType.CATCH_BODY);
-            case "finally_close":
-                return new InnerNode(NodeType.FINALLY_BODY);
-            case "array_creation_expression":
-                return new InnerNode(NodeType.CLASS_ARRAY_CREATOR);
-            case "object_creation_expression":
-                return new InnerNode(NodeType.CLASS_ARRAY_CREATOR);
-            case "lambda_expression":
-                return new InnerNode(NodeType.LAMBDA_EXPR);
         }
         return new UnknownNode(type);
     }
