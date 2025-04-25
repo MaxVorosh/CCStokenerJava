@@ -22,7 +22,7 @@ public enum NodeType {
     CATCH_BODY,
     FINALLY_BODY,
     LAMBDA_EXPR,
-    CONSTRUCTOR_INVOC,
+    CONSTRUCTOR_INVOC, //TODO Unused?
     CLASS_ARRAY_CREATOR,
 
     //Helper

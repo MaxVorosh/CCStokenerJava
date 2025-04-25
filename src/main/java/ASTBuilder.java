@@ -112,6 +112,15 @@ public class ASTBuilder {
             }
             root = node;
         }
+        if (root.parent != null && root.parent.getMetaInfo() == "assert_statement") {
+            NodeType type = NodeType.ASSERT_BODY;
+            if (index == 0) {
+                type = NodeType.ASSERT_COND;
+            }
+            ASTNode betweenNode = new InnerNode(type);
+            betweenNode.children.add(root);
+            root.parent.children.set(index, betweenNode);
+        }
         for (int i = 0; i < root.children.size(); ++i) {
             updateASTJava(root.children.get(i), i);
         }
@@ -139,6 +148,10 @@ public class ASTBuilder {
                 int[] r = getRange(prevArgs[prevArgs.length - 3], from);
                 prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
             }
+            args = Arrays.copyOfRange(args, 1, args.length);
+            type = args[0];
+        }
+        if (type == "value:") {
             args = Arrays.copyOfRange(args, 1, args.length);
             type = args[0];
         }
@@ -172,8 +185,11 @@ public class ASTBuilder {
                             return new UnknownNode(type);
                     }
                 }
-                if (prevNode.getMetaInfo() == "switch_expression") {
-                    return new InnerNode(NodeType.SWITCH_BODY);
+                switch (prevNode.getMetaInfo()) {
+                    case "switch_expression":
+                       return new InnerNode(NodeType.SWITCH_BODY);
+                    case "try_statement":
+                        return new InnerNode(NodeType.TRY_BODY);
                 }
                 return new UnknownNode(type);
             case "consequence:":
@@ -192,6 +208,18 @@ public class ASTBuilder {
                 return new InnerNode(NodeType.RETURN_STMT);
             case "switch_block_statement_group":
                 return new InnerNode(NodeType.CASE_BODY);
+            case "throw_statement":
+                return new InnerNode(NodeType.THROW_BODY);
+            case "catch_close":
+                return new InnerNode(NodeType.CATCH_BODY);
+            case "finally_close":
+                return new InnerNode(NodeType.FINALLY_BODY);
+            case "array_creation_expression":
+                return new InnerNode(NodeType.CLASS_ARRAY_CREATOR);
+            case "object_creation_expression":
+                return new InnerNode(NodeType.CLASS_ARRAY_CREATOR);
+            case "lambda_expression":
+                return new InnerNode(NodeType.LAMBDA_EXPR);
         }
         return new UnknownNode(type);
     }
