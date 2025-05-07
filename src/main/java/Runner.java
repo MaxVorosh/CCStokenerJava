@@ -2,8 +2,10 @@ import java.util.Vector;
 
 public class Runner {
     public static void main(String[] args) {
-        ASTBuilder astb = new ASTBuilder();
-        astb.buildAsts("./code_examples/GCD.java", "java");
+        // ASTBuilder astb = new ASTBuilder();
+        // astb.buildAsts("./code_examples/GCD.java", "java");
+        TokenBuilder tb = new TokenBuilder(5);
+        tb.buildTokens("./code_examples/GCD.java", "java");
         // System.out.println("Started");
         // FileWorker worker = new FileWorker();
         // Processor processor = new Processor(7, 0.1f, 0.5f, 0.4f, 0.65f, args[2]); // Didn't find k value in paper

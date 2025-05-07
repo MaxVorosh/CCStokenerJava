@@ -70,7 +70,6 @@ public class ASTBuilder {
             return null;
         }
         String textStr = String.join("\n", text);
-        // System.out.println(textStr);
         String ast;
         try {
             Parser parser = Parser.getFor(lang);
@@ -78,7 +77,6 @@ public class ASTBuilder {
             TreeCursor cursor = tree.getRootNode().walk();
             SyntaxTreePrinter printer = new SyntaxTreePrinter(cursor);
             ast = printer.print();
-            System.out.println(ast);
         } catch (Exception ex) {
             return null;
         }
@@ -88,6 +86,7 @@ public class ASTBuilder {
         int level = -1;
         for (String line : astLines) {
             int currentLevel = getLevel(line);
+            line = line.strip();
             // System.out.println(currentLevel);
             // System.out.println(level);
             // System.out.println("");
@@ -159,23 +158,32 @@ public class ASTBuilder {
     private ASTNode parseJavaLine(Vector<String> text, String line, ASTNode prevNode) {
         String[] args = line.split(" ");
         String type = args[0];
-        if (type == "left:" || type == "right:") {
-            String from = args[args.length - 3];
-            String to = args[args.length - 1];
-            String[] prevArgs = prevNode.getMetaInfo().split(" ");
-            if (type == "left:") {
-                prevArgs[prevArgs.length - 3] = to;
-                prevNode.setMetaInfo(String.join(" ", prevArgs));
-            }
-            else {
-                int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+        // System.out.println(type);
+        // System.out.println(type.length());
+        // System.out.println((int)type.charAt(0));
+        // System.out.println((int)type.charAt(type.length() - 1));
+        // System.out.println(type == "left:");
+        if (type.equals("left:") || type.equals("right:")) {
+            if (prevNode instanceof UnknownNode) {
+                String from = args[args.length - 3];
+                String to = args[args.length - 1];
+                String[] prevArgs = prevNode.getMetaInfo().split(" ");
+                if (type.equals("left:")) {
+                    prevArgs[prevArgs.length - 3] = to;
+                    prevNode.setMetaInfo(String.join(" ", prevArgs));
+                }
+                else {
+                    int[] r = getRange(prevArgs[prevArgs.length - 3], from);
+                    prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+                }
             }
             args = Arrays.copyOfRange(args, 1, args.length);
+            line = String.join(" ", args);
             type = args[0];
         }
-        if (type == "value:") {
+        if (type.equals("value:")) {
             args = Arrays.copyOfRange(args, 1, args.length);
+            line = String.join(" ", args);
             type = args[0];
         }
         int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
@@ -196,14 +204,14 @@ public class ASTBuilder {
                     case "switch_expression":
                         return new InnerNode(NodeType.SWITCH_CONDITION, lines[0], lines[1]);
                 }
-                return new UnknownNode(args[1]);
+                return new UnknownNode(line);
             case "body:":
                 if (prevNode instanceof InnerNode) {
                     switch (((InnerNode)prevNode).type) {
                         case LOOP_COND:
                             return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
                         default:
-                            return new UnknownNode(type);
+                            return new UnknownNode(line);
                     }
                 }
                 switch (prevNode.getMetaInfo()) {
@@ -212,11 +220,11 @@ public class ASTBuilder {
                     case "try_statement":
                         return new InnerNode(NodeType.TRY_BODY, lines[0], lines[1]);
                 }
-                return new UnknownNode(type);
+                return new UnknownNode(line);
             case "binary_expression":
                 return new UnknownNode(line);
         }
-        return new UnknownNode(type);
+        return new UnknownNode(line);
     }
 
     private int getLevel(String line) {
