@@ -39,8 +39,8 @@ public class ASTBuilder {
 
     private void fillTypes() {
         nodeTypes.put("method_declaration", NodeType.METHOD_DEF);
+        nodeTypes.put("constructor_declaration", NodeType.METHOD_DEF);
         nodeTypes.put("assignment_expression", NodeType.ASSIGN_EXPR);
-        nodeTypes.put("program", NodeType.ENTRY);
         nodeTypes.put("consequence:", NodeType.IF_ELSE_BODY);
         nodeTypes.put("alternative:", NodeType.IF_ELSE_BODY);
         nodeTypes.put("local_variable_declaration", NodeType.VAR_DECL);
@@ -127,7 +127,7 @@ public class ASTBuilder {
             if (opTypes.containsKey(op)) {
                 type = opTypes.get(op);
             }
-            ASTNode node = new InnerNode(type);
+            ASTNode node = new InnerNode(type, -1, -1);
             node.parent = root.parent;
             node.parent.children.set(index, node);
             for (ASTNode child : root.children) {
@@ -140,7 +140,7 @@ public class ASTBuilder {
             if (index == 0) {
                 type = NodeType.ASSERT_COND;
             }
-            ASTNode betweenNode = new InnerNode(type);
+            ASTNode betweenNode = new InnerNode(type, -1, -1);
             betweenNode.children.add(root);
             root.parent.children.set(index, betweenNode);
         }
@@ -178,8 +178,9 @@ public class ASTBuilder {
             args = Arrays.copyOfRange(args, 1, args.length);
             type = args[0];
         }
+        int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
         if (nodeTypes.containsKey(type)) {
-            return new InnerNode(nodeTypes.get(type));
+            return new InnerNode(nodeTypes.get(type), lines[0], lines[1]);
         }
         switch (type) {
             case "identifier":
@@ -189,27 +190,27 @@ public class ASTBuilder {
             case "condition:":
                 switch (prevNode.getMetaInfo()) {
                     case "if_statement":
-                        return new InnerNode(NodeType.IF_COND);
+                        return new InnerNode(NodeType.IF_COND, lines[0], lines[1]);
                     case "while_statement":
-                        return new InnerNode(NodeType.LOOP_COND);
+                        return new InnerNode(NodeType.LOOP_COND, lines[0], lines[1]);
                     case "switch_expression":
-                        return new InnerNode(NodeType.SWITCH_CONDITION);
+                        return new InnerNode(NodeType.SWITCH_CONDITION, lines[0], lines[1]);
                 }
                 return new UnknownNode(args[1]);
             case "body:":
                 if (prevNode instanceof InnerNode) {
                     switch (((InnerNode)prevNode).type) {
                         case LOOP_COND:
-                            return new InnerNode(NodeType.LOOP_BODY);
+                            return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
                         default:
                             return new UnknownNode(type);
                     }
                 }
                 switch (prevNode.getMetaInfo()) {
                     case "switch_expression":
-                       return new InnerNode(NodeType.SWITCH_BODY);
+                       return new InnerNode(NodeType.SWITCH_BODY, lines[0], lines[1]);
                     case "try_statement":
-                        return new InnerNode(NodeType.TRY_BODY);
+                        return new InnerNode(NodeType.TRY_BODY, lines[0], lines[1]);
                 }
                 return new UnknownNode(type);
             case "binary_expression":
@@ -233,5 +234,13 @@ public class ASTBuilder {
         int start = Integer.parseInt(pos1[1]);
         int end = Integer.parseInt(pos2[1]);
         return new int[]{lineNumber, start, end};
+    }
+
+    private int[] getRangeLines(String s1, String s2) {
+        String[] pos1 = s1.substring(1, s1.length() - 1).split(":");
+        String[] pos2 = s2.substring(1, s2.length() - 1).split(":");
+        int lineNumber1 = Integer.parseInt(pos1[0]);
+        int lineNumber2 = Integer.parseInt(pos2[0]);
+        return new int[]{lineNumber1, lineNumber2};
     }
 }

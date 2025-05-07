@@ -23,8 +23,5 @@ public enum NodeType {
     FINALLY_BODY,
     LAMBDA_EXPR,
     CONSTRUCTOR_INVOC, //TODO Unused?
-    CLASS_ARRAY_CREATOR,
-
-    //Helper
-    ENTRY
+    CLASS_ARRAY_CREATOR
 }
