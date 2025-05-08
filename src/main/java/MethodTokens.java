@@ -9,6 +9,7 @@ public class MethodTokens {
     Vector<int[]> varCalleeTokens;
     String path;
     int startLine, endLine;
+    int tokensCnt;
     int n; // fro n-grams
 
     MethodTokens(String path, int startLine, int endLine, StructNode root, int n) {
@@ -17,6 +18,7 @@ public class MethodTokens {
         varVarTokens = new Vector<>();
         varOpTokens = new Vector<>();
         varCalleeTokens = new Vector<>();
+        tokensCnt = 0;
         this.startLine = startLine;
         this.endLine = endLine;
         this.root = root;

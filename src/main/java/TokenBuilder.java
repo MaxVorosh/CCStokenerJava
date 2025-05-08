@@ -28,8 +28,9 @@ public class TokenBuilder {
                 }
                 StructNode rootStruct = new StructNode(StructNodeType.UNDEFINED);
                 MethodTokens meth = new MethodTokens(path, ((InnerNode)root).startLine, ((InnerNode)root).endLine, rootStruct, n);
-                parseMethod(root, tokenArr, rootStruct);
+                int tokens = parseMethod(root, tokenArr, rootStruct);
                 meth.root = rootStruct;
+                meth.tokensCnt = tokens;
                 methods.add(meth);
             }
         }
@@ -38,7 +39,7 @@ public class TokenBuilder {
         }
     }
 
-    void parseMethod(ASTNode root, int[] tokenArr, StructNode structNode) {
+    int parseMethod(ASTNode root, int[] tokenArr, StructNode structNode) {
         if (root instanceof IdentifierNode) {
             structNode.type = StructNodeType.IDENTIFIER;
             for (int i = 0; i < tokenArr.length; ++i) {
@@ -55,11 +56,13 @@ public class TokenBuilder {
             }
             tokenArr[node.type.ordinal()] += 1;
         }
+        int tokens = 1;
         for (ASTNode ch : root.children) {
             StructNode child = new StructNode(StructNodeType.UNDEFINED);
             child.pr = structNode;
             structNode.childs.add(child);
-            parseMethod(ch, tokenArr, child);
+            tokens += parseMethod(ch, tokenArr, child);
         }
+        return tokens;
     }
 }
