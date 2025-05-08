@@ -1,3 +1,4 @@
+import java.util.HashSet;
 import java.util.Vector;
 
 public class TokenBuilder {
@@ -28,9 +29,11 @@ public class TokenBuilder {
                 }
                 StructNode rootStruct = new StructNode(StructNodeType.UNDEFINED);
                 MethodTokens meth = new MethodTokens(path, ((InnerNode)root).startLine, ((InnerNode)root).endLine, rootStruct, n);
-                int tokens = parseMethod(root, tokenArr, rootStruct);
+                HashSet<String> methodActionTokens = new HashSet<>();
+                int tokens = parseMethod(root, tokenArr, rootStruct, methodActionTokens);
                 meth.root = rootStruct;
                 meth.tokensCnt = tokens;
+                meth.actionTokens = methodActionTokens;
                 methods.add(meth);
             }
         }
@@ -39,7 +42,7 @@ public class TokenBuilder {
         }
     }
 
-    int parseMethod(ASTNode root, int[] tokenArr, StructNode structNode) {
+    int parseMethod(ASTNode root, int[] tokenArr, StructNode structNode, HashSet<String> actionTokens) {
         if (root instanceof IdentifierNode) {
             structNode.type = StructNodeType.IDENTIFIER;
             for (int i = 0; i < tokenArr.length; ++i) {
@@ -56,12 +59,15 @@ public class TokenBuilder {
             }
             tokenArr[node.type.ordinal()] += 1;
         }
+        if (root instanceof ActionTokenNode) {
+            actionTokens.add(((ActionTokenNode)root).getMetaInfo());
+        }
         int tokens = 1;
         for (ASTNode ch : root.children) {
             StructNode child = new StructNode(StructNodeType.UNDEFINED);
             child.pr = structNode;
             structNode.childs.add(child);
-            tokens += parseMethod(ch, tokenArr, child);
+            tokens += parseMethod(ch, tokenArr, child, actionTokens);
         }
         return tokens;
     }

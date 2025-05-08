@@ -1,8 +1,8 @@
+import java.util.HashSet;
 import java.util.Vector;
 
 public class MethodTokens {
-    Vector<String> types;
-    Vector<String> methods;
+    HashSet<String> actionTokens;
     StructNode root;
     Vector<int[]> varVarTokens;
     Vector<int[]> varOpTokens;
@@ -10,11 +10,10 @@ public class MethodTokens {
     String path;
     int startLine, endLine;
     int tokensCnt;
-    int n; // fro n-grams
+    int n; // for n-grams
 
     MethodTokens(String path, int startLine, int endLine, StructNode root, int n) {
-        types = new Vector<>();
-        methods = new Vector<>();
+        actionTokens = new HashSet<>();
         varVarTokens = new Vector<>();
         varOpTokens = new Vector<>();
         varCalleeTokens = new Vector<>();

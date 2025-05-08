@@ -77,6 +77,7 @@ public class ASTBuilder {
             TreeCursor cursor = tree.getRootNode().walk();
             SyntaxTreePrinter printer = new SyntaxTreePrinter(cursor);
             ast = printer.print();
+            System.out.println(ast);
         } catch (Exception ex) {
             return null;
         }
@@ -185,6 +186,14 @@ public class ASTBuilder {
             args = Arrays.copyOfRange(args, 1, args.length);
             line = String.join(" ", args);
             type = args[0];
+        }
+        if ((type.equals("name:") && prevNode instanceof InnerNode && ((InnerNode)prevNode).type == NodeType.METHOD_DEF)
+             || type.equals("type:")) {
+            String from = args[args.length - 3];
+            String to = args[args.length - 1];
+            int[] r = getRange(from, to);
+            String name = text.get(r[0]).substring(r[1], r[2]);
+            return new ActionTokenNode(name);
         }
         int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
         if (nodeTypes.containsKey(type)) {

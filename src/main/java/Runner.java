@@ -6,9 +6,13 @@ public class Runner {
         // astb.buildAsts("./code_examples/GCD.java", "java");
         TokenBuilder tb = new TokenBuilder(5); // Didn't find n value in paper
         tb.buildTokens("./code_examples/GCD.java", "java");
-        for (MethodTokens m : tb.methods) {
-            System.err.println(m.tokensCnt);
-        }
+        // for (MethodTokens m : tb.methods) {
+        //     System.err.println(m.tokensCnt);
+        //     System.err.println(m.actionTokens.size());
+        //     for (String tok : m.actionTokens) {
+        //         System.err.println(tok);
+        //     }
+        // }
         // System.out.println("Started");
         // FileWorker worker = new FileWorker();
         // Processor processor = new Processor(7, 0.1f, 0.5f, 0.4f, 0.65f, args[2]); // Didn't find k value in paper
