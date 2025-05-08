@@ -77,7 +77,7 @@ public class ASTBuilder {
             TreeCursor cursor = tree.getRootNode().walk();
             SyntaxTreePrinter printer = new SyntaxTreePrinter(cursor);
             ast = printer.print();
-            System.out.println(ast);
+            // System.out.println(ast);
         } catch (Exception ex) {
             return null;
         }
@@ -88,9 +88,6 @@ public class ASTBuilder {
         for (String line : astLines) {
             int currentLevel = getLevel(line);
             line = line.strip();
-            // System.out.println(currentLevel);
-            // System.out.println(level);
-            // System.out.println("");
             while (currentLevel - 1 != level) {
                 curNode = curNode.parent;
                 level--;
@@ -159,11 +156,6 @@ public class ASTBuilder {
     private ASTNode parseJavaLine(Vector<String> text, String line, ASTNode prevNode) {
         String[] args = line.split(" ");
         String type = args[0];
-        // System.out.println(type);
-        // System.out.println(type.length());
-        // System.out.println((int)type.charAt(0));
-        // System.out.println((int)type.charAt(type.length() - 1));
-        // System.out.println(type == "left:");
         if (type.equals("left:") || type.equals("right:")) {
             if (prevNode instanceof UnknownNode) {
                 String from = args[args.length - 3];

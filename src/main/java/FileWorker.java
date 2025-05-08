@@ -247,4 +247,75 @@ public class FileWorker {
             }
         }
     }
+
+    void writeTokensDir(String path) {
+        File dir = new File(path);
+        File[] listOfFiles = dir.listFiles();
+        if (listOfFiles != null) {
+            for (File file : listOfFiles) {
+                writeTokensFile(file);
+            }
+        }
+    }
+
+    void writeTokensFile(File file) {
+        TokenBuilder tb = new TokenBuilder(5);
+        String name = file.getName();
+        String[] nameParts = name.split("\\.");
+        name = String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";
+        String type = nameParts[nameParts.length - 1];
+        tb.buildTokens(file.getPath(), type);
+        try {
+            FileWriter fw = new FileWriter("./tokens/" + name, false);
+            for (MethodTokens meth : tb.methods) {
+                writeTokensMethod(fw, meth, file.getPath());
+            }
+            fw.close();
+        }
+        catch (Exception e) {System.err.println(e);}
+    }
+
+    void writeTokensMethod(FileWriter fw, MethodTokens meth, String path) {
+        try {
+            fw.write(String.format("<block filePath:%s, startline:%d, endline:%d, validTokenNum:%d, totalTokenNum: %d>\n", path, meth.startLine, meth.endLine, meth.tokensCnt, meth.tokensCnt));
+            fw.write("<type>\n");
+            for (String actionToken : meth.actionTokens) {
+                fw.write(String.format("%s,1: [", actionToken));
+                for (int i = 0; i < 24; ++i) {
+                    fw.write("0, ");
+                }
+                fw.write("0]\n");
+            }
+            fw.write("</type>\n");
+            fw.write("<variable group>\n");
+            for (int[] varVarToken : meth.varVarTokens) {
+                fw.write("_,1: [");
+                for (int i = 0; i < 24; ++i) {
+                    fw.write(String.format("%d, ", varVarToken[i]));
+                }
+                fw.write(String.format("%d]\n", varVarToken[24]));
+            }
+            fw.write("</variable group>\n");
+            fw.write("<method group>\n");
+            for (int[] varCalleeToken : meth.varCalleeTokens) {
+                fw.write("_,1: [");
+                for (int i = 0; i < 24; ++i) {
+                    fw.write(String.format("%d, ", varCalleeToken[i]));
+                }
+                fw.write(String.format("%d]\n", varCalleeToken[24]));
+            }
+            fw.write("</method group>\n");
+            fw.write("<relation>\n");
+            for (int[] varOpToken : meth.varOpTokens) {
+                fw.write("_,1: [");
+                for (int i = 0; i < 24; ++i) {
+                    fw.write(String.format("%d, ", varOpToken[i]));
+                }
+                fw.write(String.format("%d]\n", varOpToken[24]));
+            }
+            fw.write("</relation>\n");
+            fw.write("</block>\n");
+        }
+        catch (Exception e) {}
+    }
 }

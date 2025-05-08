@@ -16,18 +16,19 @@ public class Index {
     void addBlock(CodeBlock block) {
         FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
+        int curK = k;
         if (tokens.size() < k) {
-            return;
+            curK = tokens.size();
         }
         tokens.sort(null);
         Vector<String> window = new Vector<>();
-        for (int i = 0; i < k; ++i) {
+        for (int i = 0; i < curK; ++i) {
             window.add(tokens.get(i));
         }
         int h = String.join(" ", window).hashCode();
         hashes.add(h);
         fw.addBlockDirect(pathDir, h, block);
-        for (int i = k; i < tokens.size(); ++i) {
+        for (int i = curK; i < tokens.size(); ++i) {
             window.remove(0);
             window.add(tokens.get(i));
             h = String.join(" ", window).hashCode();
