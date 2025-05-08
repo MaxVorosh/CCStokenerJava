@@ -4,6 +4,7 @@ public class Index {
     Set<Integer> hashes;
     int k; // Parameter for active token n-grams
     String pathDir;
+    int smallStorageInd = 0;
 
     Index(String pathDir, int k) {
         hashes = new HashSet<>();
@@ -16,19 +17,19 @@ public class Index {
     void addBlock(CodeBlock block) {
         FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
-        int curK = k;
         if (tokens.size() < k) {
-            curK = tokens.size();
+            fw.addBlockDirect(pathDir, smallStorageInd, block);
+            return;
         }
         tokens.sort(null);
         Vector<String> window = new Vector<>();
-        for (int i = 0; i < curK; ++i) {
+        for (int i = 0; i < k; ++i) {
             window.add(tokens.get(i));
         }
         int h = String.join(" ", window).hashCode();
         hashes.add(h);
         fw.addBlockDirect(pathDir, h, block);
-        for (int i = curK; i < tokens.size(); ++i) {
+        for (int i = k; i < tokens.size(); ++i) {
             window.remove(0);
             window.add(tokens.get(i));
             h = String.join(" ", window).hashCode();
@@ -42,7 +43,7 @@ public class Index {
         Set<Integer> usedBlocks = new HashSet<>();
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
-            return v;
+            return fw.readBlocks(pathDir, smallStorageInd);
         }
         tokens.sort(null);
         Vector<String> window = new Vector<>();
