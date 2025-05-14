@@ -120,8 +120,8 @@ public class FileWorker {
             for (ClonePair pair : clones) {
                 CodeBlockInfo p1 = pair.first;
                 CodeBlockInfo p2 = pair.second;
-                fw.write(p1.filename + " " + p1.startLine + " " + p1.endLine + " " +
-                        p2.filename + " " + p2.startLine + " " + p2.endLine + "\n");
+                fw.write(p1.filename + " " + (p1.startLine + 1) + " " + (p1.endLine + 1) + " " +
+                        p2.filename + " " + (p2.startLine + 1) + " " + (p2.endLine + 1) + "\n");
             }
             fw.flush();
             fw.close();
@@ -251,21 +251,26 @@ public class FileWorker {
         }
     }
 
-    void writeTokensDir(String path) {
+    void writeTokensDir(String path, String pref) {
         File dir = new File(path);
         File[] listOfFiles = dir.listFiles();
         if (listOfFiles != null) {
             for (File file : listOfFiles) {
-                writeTokensFile(file);
+                if (file.isFile()) {
+                    writeTokensFile(file, pref);
+                }
+                else if (file.isDirectory()) {
+                    writeTokensDir(file.getPath(), pref + file.getName() + "-");
+                }
             }
         }
     }
 
-    void writeTokensFile(File file) {
+    void writeTokensFile(File file, String pref) {
         TokenBuilder tb = new TokenBuilder(3);
         String name = file.getName();
         String[] nameParts = name.split("\\.");
-        name = String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";
+        name = pref + String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";
         String type = nameParts[nameParts.length - 1];
         tb.buildTokens(file.getPath(), type);
         try {

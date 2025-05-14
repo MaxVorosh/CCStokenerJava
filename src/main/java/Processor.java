@@ -72,7 +72,6 @@ public class Processor {
                 float operationSim = getSimilarity(block, otherBlock, CollectionType.OPERATION);
                 float calleeSim = getSimilarity(block, otherBlock, CollectionType.CALLEE);
                 float sim = (varSim + operationSim + calleeSim) / 3;
-
                 if (sim > eta) {
                     pairs.add(new ClonePair(block.getInfo(), otherBlock.getInfo()));
                 }
