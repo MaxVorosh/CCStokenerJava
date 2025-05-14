@@ -117,13 +117,13 @@ public class CodeBlock {
         int targetTokens = tokensNum;
         int candidateTokens = other.tokensNum;
         float tokenRatio = min(targetTokens, candidateTokens) / (float) max(targetTokens, candidateTokens);
-        if (tokenRatio < theta) {
+        if (tokenRatio <= theta) {
             return true;
         }
         int overlap = activeTokensOverlap(other);
         float overlapRatio = overlap / (float) min(activeTokens.size(), other.activeTokens.size());
 
-        return overlapRatio < beta;
+        return overlapRatio <= beta;
     }
 
 
