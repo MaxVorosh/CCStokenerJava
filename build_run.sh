@@ -1,3 +1,5 @@
-javac -cp ./src/main/java -d ./build ./src/main/java/Runner.java
-cd build
-java Runner ./../small_tokens ./../small_report.txt
+mkdir index
+mkdir tokens
+sh gradlew run --args=\'$1\'
+rm -rf index
+rm -rf tokens
