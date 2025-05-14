@@ -192,12 +192,15 @@ public class FileWorker {
                     stage = ParseStage.ACTIVE;
                 }
                 else if (line.startsWith("Vars")) {
+                    collection = new TokenCollection();
                     stage = ParseStage.VAR;
                 }
                 else if (line.startsWith("Operations")) {
+                    collection = new TokenCollection();
                     stage = ParseStage.OPERATION;
                 }
                 else if (line.startsWith("Callees")) {
+                    collection = new TokenCollection();
                     stage = ParseStage.CALLEE;
                 }
                 else if (stage == ParseStage.ACTIVE) {

@@ -20,6 +20,10 @@ public class Processor {
     float getSimilarity(CodeBlock first, CodeBlock second, CollectionType type) {
         float res = 0;
         float tr = 1;
+        float maxSize = Math.max(first.collectionSize(type), second.collectionSize(type));
+        if (maxSize == 0) {
+            return 1;
+        }
         while (tr > 0) {
             for (int i = 0; i < first.collectionSize(type); ++i) {
                 if (first.isMarked(i, type)) {
@@ -36,12 +40,15 @@ public class Processor {
                         res += sim;
                         first.markToken(i, type);
                         second.markToken(j, type);
+                        break;
                     }
                 }
             }
             tr -= phi;
         }
-        return res;
+        first.reset(type);
+        second.reset(type);
+        return res / maxSize;
     }
 
     Vector<ClonePair> getClonePairs(Vector<CodeBlock> blocks) {

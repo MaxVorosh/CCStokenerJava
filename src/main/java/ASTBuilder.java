@@ -120,7 +120,7 @@ public class ASTBuilder {
     private void updateASTJava(ASTNode root, int index) {
         String info = root.getMetaInfo();
         if (info.startsWith("expr ")) {
-            String op = info.split(" ")[1];
+            String op = info.split(" ")[1].strip();
             NodeType type = NodeType.NUMERIC_EXPR;
             if (opTypes.containsKey(op)) {
                 type = opTypes.get(op);
@@ -168,11 +168,11 @@ public class ASTBuilder {
                 }
                 else {
                     int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                    if (r[1] + 1 >= r[2] - 1) {
+                    if (r[1] >= r[2]) {
                         System.err.println("Parsing error");
                     }
                     else {
-                        prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+                        prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1], r[2]));
                     }
                 }
             }

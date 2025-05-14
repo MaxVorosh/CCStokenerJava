@@ -142,4 +142,19 @@ public class CodeBlock {
     int getTokensNum() {
         return tokensNum;
     }
+
+    void reset(CollectionType type) {
+        if (type == CollectionType.VAR) {
+            vars.reset();
+            return;
+        }
+        if (type == CollectionType.OPERATION) {
+            ops.reset();
+            return;
+        }
+        if (type == CollectionType.CALLEE) {
+            callees.reset();
+            return;
+        }
+    }
 }

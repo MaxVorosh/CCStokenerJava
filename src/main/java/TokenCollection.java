@@ -29,4 +29,10 @@ public class TokenCollection {
     int size() {
         return collection.size();
     }
+
+    void reset() {
+        for (int i = 0; i < marked.size(); ++i) {
+            marked.set(i, false);
+        }
+    }
 }
