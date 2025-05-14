@@ -57,6 +57,7 @@ public class ASTBuilder {
     }
 
     public ASTNode buildAsts(String path, String langName) {
+        System.out.println(path);
         Language lang = langDict.get(langName);
         File code_file = new File(path);
         Vector<String> text = new Vector<>();
@@ -118,7 +119,7 @@ public class ASTBuilder {
 
     private void updateASTJava(ASTNode root, int index) {
         String info = root.getMetaInfo();
-        if (info.startsWith("expr")) {
+        if (info.startsWith("expr ")) {
             String op = info.split(" ")[1];
             NodeType type = NodeType.NUMERIC_EXPR;
             if (opTypes.containsKey(op)) {
@@ -167,7 +168,12 @@ public class ASTBuilder {
                 }
                 else {
                     int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                    prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+                    if (r[1] + 1 >= r[2] - 1) {
+                        System.err.println("Parsing error");
+                    }
+                    else {
+                        prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1] + 1, r[2] - 1));
+                    }
                 }
             }
             args = Arrays.copyOfRange(args, 1, args.length);
