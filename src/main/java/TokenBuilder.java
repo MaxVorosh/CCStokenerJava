@@ -14,6 +14,9 @@ public class TokenBuilder {
     void buildTokens(String path, String lang) {
         ASTBuilder astb = new ASTBuilder();
         ASTNode root = astb.buildAsts(path, lang);
+        if (root == null) {
+            return;
+        }
         parseMethods(root, path);
         for (MethodTokens method : methods) {
             method.computeSemanticTokens();

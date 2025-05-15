@@ -273,6 +273,9 @@ public class FileWorker {
         name = pref + String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";
         String type = nameParts[nameParts.length - 1];
         tb.buildTokens(file.getPath(), type);
+        if (tb.methods.size() == 0) {
+            return;
+        }
         try {
             FileWriter fw = new FileWriter("./tokens/" + name, false);
             for (MethodTokens meth : tb.methods) {
