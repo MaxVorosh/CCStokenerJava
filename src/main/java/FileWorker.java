@@ -120,8 +120,8 @@ public class FileWorker {
             for (ClonePair pair : clones) {
                 CodeBlockInfo p1 = pair.first;
                 CodeBlockInfo p2 = pair.second;
-                fw.write(p1.filename + " " + (p1.startLine + 1) + " " + (p1.endLine + 1) + " " +
-                        p2.filename + " " + (p2.startLine + 1) + " " + (p2.endLine + 1) + "\n");
+                fw.write(p1.filename + "," + (p1.startLine + 1) + "," + (p1.endLine + 1) + "," +
+                        p2.filename + "," + (p2.startLine + 1) + "," + (p2.endLine + 1) + "\n");
             }
             fw.flush();
             fw.close();
@@ -267,7 +267,7 @@ public class FileWorker {
     }
 
     void writeTokensFile(File file, String pref) {
-        TokenBuilder tb = new TokenBuilder(3);
+        TokenBuilder tb = new TokenBuilder(10);
         String name = file.getName();
         String[] nameParts = name.split("\\.");
         name = pref + String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";

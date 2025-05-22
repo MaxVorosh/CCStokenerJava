@@ -8,13 +8,15 @@ public class Processor {
     float eta; // Block similarity threshold
     int k; // Index n-gram size
     String indexDir;
-    Processor(int k, float phi, float beta, float theta, float eta, String indexDir) {
+    String smallIndexDir;
+    Processor(int k, float phi, float beta, float theta, float eta, String indexDir, String smallIndexDir) {
         this.k = k;
         this.phi = phi;
         this.beta = beta;
         this.theta = theta;
         this.eta = eta;
         this.indexDir = indexDir;
+        this.smallIndexDir = smallIndexDir;
     }
 
     float getSimilarity(CodeBlock first, CodeBlock second, CollectionType type) {
@@ -52,13 +54,13 @@ public class Processor {
     }
 
     Vector<ClonePair> getClonePairs(Vector<CodeBlock> blocks) {
-        Index ind = new Index(indexDir, k);
+        Index ind = new Index(indexDir, smallIndexDir, k);
         for (CodeBlock block : blocks) {
             ind.addBlock(block);
         }
         Vector<ClonePair> pairs = new Vector<>();
         for (CodeBlock block : blocks) {
-            Vector<CodeBlock> candidates = ind.getBlocks(block.getActiveTokens());
+            Vector<CodeBlock> candidates = ind.getBlocks(block);
             for (CodeBlock otherBlock : candidates) {
                 if (otherBlock.hashCode() >= block.hashCode()) {
                     continue;

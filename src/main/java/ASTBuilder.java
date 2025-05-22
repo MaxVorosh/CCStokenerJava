@@ -42,7 +42,7 @@ public class ASTBuilder {
         nodeTypes.put("constructor_declaration", NodeType.METHOD_DEF);
         nodeTypes.put("assignment_expression", NodeType.ASSIGN_EXPR);
         nodeTypes.put("consequence:", NodeType.IF_ELSE_BODY);
-        nodeTypes.put("alternative:", NodeType.IF_ELSE_BODY);
+        nodeTypes.put("alternative:", NodeType.IF_ELSE_BODY); //TODO in original instrument this does not exist
         nodeTypes.put("local_variable_declaration", NodeType.VAR_DECL);
         nodeTypes.put("array_access", NodeType.ARRAY_SELECTOR);
         nodeTypes.put("method_invocation", NodeType.METHOD_INVOC);
@@ -169,7 +169,7 @@ public class ASTBuilder {
                 else {
                     int[] r = getRange(prevArgs[prevArgs.length - 3], from);
                     if (r[1] >= r[2]) {
-                        System.err.println("Parsing error");
+                        // System.err.println("Parsing error");
                     }
                     else {
                         prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1], r[2]));
@@ -185,8 +185,8 @@ public class ASTBuilder {
             line = String.join(" ", args);
             type = args[0];
         }
-        if ((type.equals("name:") && prevNode instanceof InnerNode && ((InnerNode)prevNode).type == NodeType.METHOD_DEF)
-             || type.equals("type:")) {
+        if (type.equals("type:") || (type.equals("name:") && prevNode instanceof InnerNode && 
+            (((InnerNode)prevNode).type == NodeType.METHOD_DEF || ((InnerNode)prevNode).type == NodeType.METHOD_INVOC))) {
             String from = args[args.length - 3];
             String to = args[args.length - 1];
             int[] r = getRange(from, to);

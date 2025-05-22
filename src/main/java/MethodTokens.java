@@ -46,7 +46,13 @@ public class MethodTokens {
         if (rootTree.type == StructNodeType.METHOD || rootTree.type == StructNodeType.OPERATION) {
             int[] otherToken = getSemSum(rootTree);
             for (int i = 0; i < 25; ++i) {
-                rootTree.semToken[i] = rootTree.token[i] + otherToken[i];
+                otherToken[i] += rootTree.token[i];
+            }
+            if (rootTree.type == StructNodeType.METHOD) {
+                varCalleeTokens.add(otherToken);
+            }
+            else {
+                varOpTokens.add(otherToken);
             }
         }
         for (StructNode ch : rootTree.childs) {

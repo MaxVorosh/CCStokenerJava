@@ -4,21 +4,26 @@ public class Index {
     Set<Integer> hashes;
     int k; // Parameter for active token n-grams
     String pathDir;
-    int smallStorageInd = 0;
+    String smallPathDir;
 
-    Index(String pathDir, int k) {
+    Index(String pathDir, String smallPathDir, int k) {
         hashes = new HashSet<>();
         this.k = k;
         FileWorker fw = new FileWorker();
         fw.updateDir(pathDir);
         this.pathDir = pathDir;
+        this.smallPathDir = smallPathDir;
     }
 
     void addBlock(CodeBlock block) {
         FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
         if (tokens.size() < k) {
-            fw.addBlockDirect(pathDir, smallStorageInd, block);
+            int id = block.getTokensNum() / 100 + block.getActiveTokens().size();
+            // if (id < 100) {
+            //     return;
+            // }
+            fw.addBlockDirect(smallPathDir, id, block);
             return;
         }
         tokens.sort(null);
@@ -38,12 +43,18 @@ public class Index {
         }
     }
 
-    Vector<CodeBlock> getBlocks(Vector<String> tokens) {
+    Vector<CodeBlock> getBlocks(CodeBlock startBlock) {
+        Vector<String> tokens = startBlock.getActiveTokens();
         FileWorker fw = new FileWorker();
         Set<Integer> usedBlocks = new HashSet<>();
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
-            return fw.readBlocks(pathDir, smallStorageInd);
+            // return new Vector<>();
+            int id = startBlock.getTokensNum() / 100 + tokens.size();
+            // if (id < 100) {
+            //     return new Vector<>();
+            // }
+            return fw.readBlocks(smallPathDir, id);
         }
         tokens.sort(null);
         Vector<String> window = new Vector<>();
