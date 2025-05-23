@@ -11,9 +11,9 @@ public class TokenBuilder {
         this.n = n;
         methods = new Vector<>();
         banned = new HashSet<>();
-        banned.add("103321.java");
-        banned.add("47742.java");
-        banned.add("123414.java");
+        // banned.add("103321.java");
+        // banned.add("47742.java");
+        // banned.add("123414.java");
     }
 
     void buildTokens(String path, String lang) {
@@ -67,12 +67,7 @@ public class TokenBuilder {
         if (root instanceof IdentifierNode) {
             // System.out.println(((IdentifierNode)root).name);
             structNode.type = StructNodeType.IDENTIFIER;
-            for (int i = 0; i < tokenArr.length; ++i) {
-                structNode.token[i] += tokenArr[i];
-                // System.out.print(structNode.token[i]);
-                // System.out.print(' ');
-            }
-            // System.out.println("");
+            structNode.mainIdentifier = ((IdentifierNode)root).name;
         }
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
@@ -80,17 +75,33 @@ public class TokenBuilder {
             if (node.type == NodeType.METHOD_INVOC) {
                 // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
-                for (int i = 0; i < tokenArr.length; ++i) {
-                    structNode.token[i] += tokenArr[i];
-                    // System.out.print(structNode.token[i]);
-                    // System.out.print(' ');
-                }   
-                // System.out.println("");
             }
-            if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
+            else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
+                // System.out.println("Op");
+            }
+            else if (node.type == NodeType.ASSIGN_EXPR) {
+                Vector<String> v = new Vector<>();
+                getIdentifiers(root.children.get(0), v);
+                String name = v.get(0);
+                structNode.mainIdentifier = name;
+                getIdentifiers(root.children.get(1), structNode.identifiers);
+            }
+            else if (node.type == NodeType.VAR_DECL || node.type == NodeType.ARRAY_SELECTOR) {
+                getIdentifiers(root, structNode.identifiers);
+                structNode.mainIdentifier = structNode.identifiers.get(0);
+                structNode.identifiers.remove(0);
+            }
+            else if (node.type == NodeType.METHOD_DEF) {
+                getIdentifiers(root.children.get(3), structNode.identifiers);
             }
         }
+        for (int i = 0; i < tokenArr.length; ++i) {
+            structNode.token[i] += tokenArr[i];
+            // System.out.print(structNode.token[i]);
+            // System.out.print(' ');
+        }
+        // System.out.println("");
         if (root instanceof ActionTokenNode) {
             actionTokens.add(((ActionTokenNode)root).getMetaInfo());
         }
@@ -107,5 +118,15 @@ public class TokenBuilder {
         }
         // System.out.println("Out");
         return tokens;
+    }
+
+    void getIdentifiers(ASTNode root, Vector<String> ids) {
+        if (root instanceof IdentifierNode) {
+            ids.add(((IdentifierNode)root).name);
+            return;
+        }
+        for (ASTNode ch : root.children) {
+            getIdentifiers(ch, ids);
+        }
     }
 }

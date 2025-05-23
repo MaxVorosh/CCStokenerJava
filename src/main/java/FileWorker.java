@@ -267,7 +267,7 @@ public class FileWorker {
     }
 
     void writeTokensFile(File file, String pref) {
-        TokenBuilder tb = new TokenBuilder(10);
+        TokenBuilder tb = new TokenBuilder(3);
         String name = file.getName();
         String[] nameParts = name.split("\\.");
         name = pref + String.join(".", Arrays.copyOfRange(nameParts, 0, nameParts.length - 1)) + ".txt";

@@ -5,17 +5,18 @@ public class StructNode {
     StructNodeType type;
     StructNode pr;
     int[] token;
-    int[] semToken;
+    Vector<String> identifiers;
+    String mainIdentifier;
 
     StructNode(StructNodeType type) {
         token = new int[25];
-        semToken = new int[25];
         for (int i = 0; i < 25; ++i) {
             token[i] = 0;
-            semToken[i] = 0;
         }
         this.type = type;
         childs = new Vector<>();
+        identifiers = new Vector<>();
         pr = null;
+        mainIdentifier = "";
     }
 }

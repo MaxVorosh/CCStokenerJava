@@ -180,11 +180,6 @@ public class ASTBuilder {
             line = String.join(" ", args);
             type = args[0];
         }
-        if (type.equals("value:")) {
-            args = Arrays.copyOfRange(args, 1, args.length);
-            line = String.join(" ", args);
-            type = args[0];
-        }
         if (type.equals("type:") || (type.equals("name:") && prevNode instanceof InnerNode && 
             (((InnerNode)prevNode).type == NodeType.METHOD_DEF || ((InnerNode)prevNode).type == NodeType.METHOD_INVOC))) {
             String from = args[args.length - 3];
@@ -192,6 +187,11 @@ public class ASTBuilder {
             int[] r = getRange(from, to);
             String name = text.get(r[0]).substring(r[1], r[2]);
             return new ActionTokenNode(name);
+        }
+        if (type.equals("value:") || type.equals("name:") || type.equals("array:")) {
+            args = Arrays.copyOfRange(args, 1, args.length);
+            line = String.join(" ", args);
+            type = args[0];
         }
         int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
         if (nodeTypes.containsKey(type)) {
