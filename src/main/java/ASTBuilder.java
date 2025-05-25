@@ -57,7 +57,7 @@ public class ASTBuilder {
     }
 
     public ASTNode buildAsts(String path, String langName) {
-        // System.out.println(path);
+        System.out.println(path);
         Language lang = langDict.get(langName);
         File code_file = new File(path);
         Vector<String> text = new Vector<>();
@@ -208,30 +208,28 @@ public class ASTBuilder {
                         return new InnerNode(NodeType.IF_COND, lines[0], lines[1]);
                     case "while_statement":
                         return new InnerNode(NodeType.LOOP_COND, lines[0], lines[1]);
+                    case "for_statement":
+                        return new InnerNode(NodeType.LOOP_COND, lines[0], lines[1]);
                     case "switch_expression":
                         return new InnerNode(NodeType.SWITCH_CONDITION, lines[0], lines[1]);
                 }
                 return new UnknownNode(line);
             case "body:":
-                if (prevNode instanceof InnerNode) {
-                    switch (((InnerNode)prevNode).type) {
-                        case LOOP_COND:
-                            return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
-                        default:
-                            return new UnknownNode(line);
-                    }
-                }
                 switch (prevNode.getMetaInfo()) {
                     case "switch_expression":
                        return new InnerNode(NodeType.SWITCH_BODY, lines[0], lines[1]);
                     case "try_statement":
                         return new InnerNode(NodeType.TRY_BODY, lines[0], lines[1]);
+                    case "while_statement":
+                        return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
+                    case "for_statement":
+                        return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
                 }
                 return new UnknownNode(line);
             case "binary_expression":
                 return new UnknownNode(line);
         }
-        return new UnknownNode(line);
+        return new UnknownNode(type);
     }
 
     private int getLevel(String line) {

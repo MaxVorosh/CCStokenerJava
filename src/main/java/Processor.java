@@ -9,14 +9,11 @@ public class Processor {
     int k; // Index n-gram size
     String indexDir;
     String smallIndexDir;
-    Processor(int k, float phi, float beta, float theta, float eta, String indexDir, String smallIndexDir) {
-        this.k = k;
+    Processor(float phi, float beta, float theta, float eta) {
         this.phi = phi;
         this.beta = beta;
         this.theta = theta;
         this.eta = eta;
-        this.indexDir = indexDir;
-        this.smallIndexDir = smallIndexDir;
     }
 
     float getSimilarity(CodeBlock first, CodeBlock second, CollectionType type) {
@@ -53,30 +50,24 @@ public class Processor {
         return res / maxSize;
     }
 
-    Vector<ClonePair> getClonePairs(Vector<CodeBlock> blocks) {
-        Index ind = new Index(indexDir, smallIndexDir, k);
-        for (CodeBlock block : blocks) {
-            ind.addBlock(block);
-        }
+    Vector<ClonePair> getClonePairs(CodeBlock block, Index ind) {
         Vector<ClonePair> pairs = new Vector<>();
-        for (CodeBlock block : blocks) {
-            Vector<CodeBlock> candidates = ind.getBlocks(block);
-            for (CodeBlock otherBlock : candidates) {
-                if (otherBlock.hashCode() >= block.hashCode()) {
-                    continue;
-                }
-                boolean shouldFilter = block.shouldBeFiltered(otherBlock, beta, theta);
-                if (shouldFilter) {
-                    continue;
-                }
+        Vector<CodeBlock> candidates = ind.getBlocks(block);
+        for (CodeBlock otherBlock : candidates) {
+            if (otherBlock.hashCode() >= block.hashCode()) {
+                continue;
+            }
+            boolean shouldFilter = block.shouldBeFiltered(otherBlock, beta, theta);
+            if (shouldFilter) {
+                continue;
+            }
 
-                float varSim = getSimilarity(block, otherBlock, CollectionType.VAR);
-                float operationSim = getSimilarity(block, otherBlock, CollectionType.OPERATION);
-                float calleeSim = getSimilarity(block, otherBlock, CollectionType.CALLEE);
-                float sim = (varSim + operationSim + calleeSim) / 3;
-                if (sim > eta) {
-                    pairs.add(new ClonePair(block.getInfo(), otherBlock.getInfo()));
-                }
+            float varSim = getSimilarity(block, otherBlock, CollectionType.VAR);
+            float operationSim = getSimilarity(block, otherBlock, CollectionType.OPERATION);
+            float calleeSim = getSimilarity(block, otherBlock, CollectionType.CALLEE);
+            float sim = (varSim + operationSim + calleeSim) / 3;
+            if (sim > eta) {
+                pairs.add(new ClonePair(block.getInfo(), otherBlock.getInfo()));
             }
         }
         return pairs;

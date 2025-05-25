@@ -19,8 +19,8 @@ public class Index {
         FileWorker fw = new FileWorker();
         Vector<String> tokens = block.getActiveTokens();
         if (tokens.size() < k) {
-            int id = block.getTokensNum() / 100 + block.getActiveTokens().size();
-            if (id < 100) {
+            int id = block.getTokensNum() / 20;
+            if (id < 1) {
                 return;
             }
             fw.addBlockDirect(smallPathDir, id, block);
@@ -50,8 +50,8 @@ public class Index {
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
             // return new Vector<>();
-            int id = startBlock.getTokensNum() / 100 + tokens.size();
-            if (id < 100) {
+            int id = startBlock.getTokensNum() / 20;
+            if (id < 1) {
                 return new Vector<>();
             }
             return fw.readBlocks(smallPathDir, id);

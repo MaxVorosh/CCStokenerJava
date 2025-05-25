@@ -17,27 +17,57 @@ public class FileWorker {
         CALLEE
     }
 
-    Vector<CodeBlock> parseDir(String path) {
-        Vector<CodeBlock> blocks = new Vector<>();
+    void processDir(String path, Processor p, Index ind) {
         File dir = new File(path);
-        parseDirVector(dir, blocks);
-        return blocks;
+        processDirRaw(dir, p, ind);
     }
 
-    private void parseDirVector(File dir, Vector<CodeBlock> blocks) {
+    private void processDirRaw(File dir, Processor p, Index ind) {
+        Vector<CodeBlock> blocks = new Vector<>();
+        int size = 0;
         File[] listOfFiles = dir.listFiles();
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                parseFile(file, blocks);
+                blocks.clear();
+                size = parseFile(file, blocks, size);
+                for (CodeBlock block : blocks) {
+                    Vector<ClonePair> pairs = p.getClonePairs(block, ind);
+                    writeReport(pairs, "./clonepairs.txt");
+                }
             }
             else if (file.isDirectory()) {
-                parseDirVector(file, blocks);
+                processDirRaw(file, p, ind);
             }
         }
     }
 
-    void parseFile(File file, Vector<CodeBlock> blocks) {
-        CodeBlock currentBlock = new CodeBlock(blocks.size());
+    void parseDir(String path, Index ind) {
+        File dir = new File(path);
+        parseDirVector(dir, ind);
+    }
+
+    private void parseDirVector(File dir, Index ind) {
+        Vector<CodeBlock> blocks = new Vector<>();
+        int size = 0;
+        File[] listOfFiles = dir.listFiles();
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                blocks.clear();
+                size = parseFile(file, blocks, size);
+                for (CodeBlock block : blocks) {
+                    ind.addBlock(block);
+                }
+            }
+            else if (file.isDirectory()) {
+                parseDirVector(file, ind);
+            }
+        }
+    }
+
+    int parseFile(File file, Vector<CodeBlock> blocks, int size) {
+        // System.out.println(file.getName());
+        // System.out.println(size);
+        CodeBlock currentBlock = new CodeBlock(size);
         ParseStage stage = ParseStage.SKIP;
         TokenCollection collection = new TokenCollection();
         try {
@@ -56,8 +86,9 @@ public class FileWorker {
                     currentBlock.setInfo(new CodeBlockInfo(filename, startLine, endLine));
                 }
                 else if (line.startsWith("</block>")) {
+                    size++;
                     blocks.add(currentBlock);
-                    currentBlock = new CodeBlock(blocks.size());
+                    currentBlock = new CodeBlock(size);
                 }
                 else if (line.startsWith("<type>") || line.startsWith("<basic type") || line.startsWith("<method>")) {
                     stage = ParseStage.ACTIVE;
@@ -112,11 +143,12 @@ public class FileWorker {
         } catch (FileNotFoundException e) {
             System.err.println("File " + file.toString() + " not found");
         }
+        return size;
     }
 
     void writeReport(Vector<ClonePair> clones, String path) {
         try {
-            FileWriter fw = new FileWriter(path);
+            FileWriter fw = new FileWriter(path, true);
             for (ClonePair pair : clones) {
                 CodeBlockInfo p1 = pair.first;
                 CodeBlockInfo p2 = pair.second;

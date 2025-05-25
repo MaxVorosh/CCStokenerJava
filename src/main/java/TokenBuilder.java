@@ -71,7 +71,6 @@ public class TokenBuilder {
         }
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
-            tokenArr[node.type.ordinal()] += 1;
             if (node.type == NodeType.METHOD_INVOC) {
                 // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
@@ -83,17 +82,27 @@ public class TokenBuilder {
             else if (node.type == NodeType.ASSIGN_EXPR) {
                 Vector<String> v = new Vector<>();
                 getIdentifiers(root.children.get(0), v);
-                String name = v.get(0);
-                structNode.mainIdentifier = name;
-                getIdentifiers(root.children.get(1), structNode.identifiers);
+                if (v.size() > 0) {
+                    String name = v.get(0);
+                    structNode.mainIdentifier = name;
+                    getIdentifiers(root.children.get(1), structNode.identifiers);   
+                }
             }
             else if (node.type == NodeType.VAR_DECL || node.type == NodeType.ARRAY_SELECTOR) {
                 getIdentifiers(root, structNode.identifiers);
-                structNode.mainIdentifier = structNode.identifiers.get(0);
-                structNode.identifiers.remove(0);
+                if (structNode.identifiers.size() > 0) {
+                    structNode.mainIdentifier = structNode.identifiers.get(0);
+                    structNode.identifiers.remove(0);
+                }
             }
             else if (node.type == NodeType.METHOD_DEF) {
-                getIdentifiers(root.children.get(3), structNode.identifiers);
+                if (root.children.size() == 3) {
+                    getIdentifiers(root.children.get(2), structNode.identifiers);
+                }
+                else {
+                    getIdentifiers(root.children.get(3), structNode.identifiers);
+                }
+                
             }
         }
         for (int i = 0; i < tokenArr.length; ++i) {
@@ -104,6 +113,10 @@ public class TokenBuilder {
         // System.out.println("");
         if (root instanceof ActionTokenNode) {
             actionTokens.add(((ActionTokenNode)root).getMetaInfo());
+        }
+        if (root instanceof InnerNode) {
+            InnerNode node = (InnerNode)root;
+            tokenArr[node.type.ordinal()] += 1;
         }
         int tokens = 1;
         for (ASTNode ch : root.children) {

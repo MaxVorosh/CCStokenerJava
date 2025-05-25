@@ -36,10 +36,18 @@ public class MethodTokens {
     }
 
     private void computeSemanticTokensTree(StructNode rootTree) {
+        for (StructNode ch : rootTree.childs) {
+            computeSemanticTokensTree(ch);
+        }
         if (rootTree.type == StructNodeType.IDENTIFIER) {
-            Variable v = new Variable(n);
-            v.setToken(rootTree.token);
-            variables.put(rootTree.mainIdentifier, v);
+            if (variables.containsKey(rootTree.mainIdentifier)) {
+                variables.get(rootTree.mainIdentifier).setToken(rootTree.token);
+            }
+            else {
+                Variable v = new Variable(n);
+                v.setToken(rootTree.token);
+                variables.put(rootTree.mainIdentifier, v);
+            }
         }
         else if (rootTree.type == StructNodeType.METHOD || rootTree.type == StructNodeType.OPERATION) {
             HashSet<String> args = new HashSet<>();
@@ -54,6 +62,9 @@ public class MethodTokens {
                 token[i] = rootTree.token[i];
             }
             for (String rel : related) {
+                if (!variables.containsKey(rel)) {
+                    continue;
+                }
                 for (int i = 0; i < 25; ++i) {
                     token[i] += variables.get(rel).token[i];
                 }
@@ -71,7 +82,10 @@ public class MethodTokens {
                 for (String var : rootTree.identifiers) {
                     int[] token = new int[25];
                     for (int i = 0; i < 25; ++i) {
-                        token[i] = rootTree.token[i];
+                        token[i] = 0;
+                        if (i == NodeType.METHOD_DEF.ordinal()) {
+                            token[i] = 1;
+                        }
                     }
                     varVarTokens.add(token);
                     Variable v = new Variable(n);
@@ -86,6 +100,9 @@ public class MethodTokens {
                 }
                 HashSet<String> related = getRelatedIdentifiers(new HashSet<>(rootTree.identifiers), n);
                 for (String rel : related) {
+                    if (!variables.containsKey(rel)) {
+                        continue;
+                    }
                     for (int i = 0; i < 25; ++i) {
                         token[i] += variables.get(rel).token[i];
                     }
@@ -105,9 +122,6 @@ public class MethodTokens {
                 }
             }
         }
-        for (StructNode ch : rootTree.childs) {
-            computeSemanticTokensTree(ch);
-        }
     }
 
     private void getIdentifiers(StructNode rootTree, HashSet<String> args) {
@@ -125,6 +139,9 @@ public class MethodTokens {
             return hs;
         }
         for (String var : vars) {
+            if (!variables.containsKey(var)) {
+                continue;
+            }
             HashSet<String> relatedVariables = getRelatedIdentifiers(variables.get(var).getRelatedVariables(), depth - 1);
             hs.addAll(relatedVariables);
         }
