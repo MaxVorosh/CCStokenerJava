@@ -53,6 +53,11 @@ public class MethodTokens {
             HashSet<String> args = new HashSet<>();
             getIdentifiers(rootTree, args);
             HashSet<String> related = getRelatedIdentifiers(args, n);
+            String mainObject = "";
+            if (rootTree.type == StructNodeType.METHOD) {
+                mainObject = rootTree.childs.get(0).mainIdentifier;
+                related.remove(mainObject);
+            }
             // System.out.println(String.format("%d %d", args.size(), related.size()));
             // for (String var : args) {
             //     System.out.println(var);
@@ -71,6 +76,14 @@ public class MethodTokens {
             }
             if (rootTree.type == StructNodeType.METHOD) {
                 varCalleeTokens.add(token);
+                if (mainObject != "") {
+                    int[] varToken = new int[25];
+                    for (int i = 0; i < 25; ++i) {
+                        varToken[i] = token[i];
+                    }
+                    varToken[NodeType.METHOD_INVOC.ordinal()] += 1;
+                    varVarTokens.add(varToken);
+                }
             }
             else {
                 varOpTokens.add(token);
@@ -107,9 +120,7 @@ public class MethodTokens {
                         token[i] += variables.get(rel).token[i];
                     }
                 }
-                if (related.size() != 0) {
-                    varVarTokens.add(token);
-                }
+                varVarTokens.add(token);
                 if (variables.containsKey(rootTree.mainIdentifier)) {
                     variables.get(rootTree.mainIdentifier).setToken(token);
                     variables.get(rootTree.mainIdentifier).addVariables(related);;
@@ -127,6 +138,11 @@ public class MethodTokens {
     private void getIdentifiers(StructNode rootTree, HashSet<String> args) {
         if (rootTree.type == StructNodeType.IDENTIFIER) {
             args.add(rootTree.mainIdentifier);
+        }
+        if (rootTree.type == StructNodeType.METHOD) {
+            for (int i = 1; i < rootTree.childs.size(); ++i) {
+                getIdentifiers(rootTree.childs.get(i), args);
+            }    
         }
         for (StructNode ch : rootTree.childs) {
             getIdentifiers(ch, args);

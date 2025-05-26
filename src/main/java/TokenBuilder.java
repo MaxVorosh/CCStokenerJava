@@ -74,6 +74,11 @@ public class TokenBuilder {
             if (node.type == NodeType.METHOD_INVOC) {
                 // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
+                getIdentifiers(root, structNode.identifiers);
+                if (structNode.identifiers.size() > 0) {
+                    structNode.mainIdentifier = structNode.identifiers.get(0);
+                    structNode.identifiers.remove(0);
+                }
             }
             else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
@@ -102,7 +107,6 @@ public class TokenBuilder {
                 else {
                     getIdentifiers(root.children.get(3), structNode.identifiers);
                 }
-                
             }
         }
         for (int i = 0; i < tokenArr.length; ++i) {

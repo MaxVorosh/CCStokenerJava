@@ -142,6 +142,26 @@ public class ASTBuilder {
             betweenNode.children.add(root);
             root.parent.children.set(index, betweenNode);
         }
+        if (root instanceof InnerNode) {
+            InnerNode node = (InnerNode)root;
+            if (node.type == NodeType.METHOD_INVOC) {
+                if (node.children.size() == 0) {
+                    node.children.add(new IdentifierNode(""));
+                }
+                else {
+                    if (node.children.get(0) instanceof IdentifierNode) {
+                        IdentifierNode child = (IdentifierNode)(node.children.get(0));
+                        if (child.name.startsWith("obj ")) {
+                            String name = child.name.split(" ")[1];
+                            child.name = name;
+                        }
+                        else {
+                            node.children.addFirst(new IdentifierNode(""));
+                        }
+                    }
+                }
+            }
+        }
         for (int i = 0; i < root.children.size(); ++i) {
             updateASTJava(root.children.get(i), i);
         }
@@ -157,6 +177,7 @@ public class ASTBuilder {
     private ASTNode parseJavaLine(Vector<String> text, String line, ASTNode prevNode) {
         String[] args = line.split(" ");
         String type = args[0];
+        int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
         if (type.equals("left:") || type.equals("right:")) {
             if (prevNode instanceof UnknownNode) {
                 String from = args[args.length - 3];
@@ -190,12 +211,23 @@ public class ASTBuilder {
             String name = text.get(r[0]).substring(r[1], r[2]);
             return new ActionTokenNode(name);
         }
-        if (type.equals("value:") || type.equals("name:") || type.equals("array:")) {
+        if (type.equals("name:") && prevNode.getMetaInfo().equals("enhanced_for_statement")) {
+            int[] r = getRange(args[2], args[4]);
+            String name = text.get(r[0]).substring(r[1], r[2]);
+            IdentifierNode innerNode = new IdentifierNode(name);
+            InnerNode declNode = new InnerNode(NodeType.VAR_DECL, lines[0], lines[1]);
+            declNode.children.add(innerNode);
+            return declNode;
+        }
+        boolean isObj = false;
+        if (type.equals("value:") || type.equals("name:") || type.equals("array:") || type.equals("object:")) {
+            if (type.equals("object:")) {
+                isObj = true;
+            }
             args = Arrays.copyOfRange(args, 1, args.length);
             line = String.join(" ", args);
             type = args[0];
         }
-        int[] lines = getRangeLines(args[args.length - 3], args[args.length - 1]);
         if (nodeTypes.containsKey(type)) {
             return new InnerNode(nodeTypes.get(type), lines[0], lines[1]);
         }
@@ -203,6 +235,9 @@ public class ASTBuilder {
             case "identifier":
                 int[] r = getRange(args[1], args[3]);
                 String name = text.get(r[0]).substring(r[1], r[2]);
+                if (isObj) {
+                    name = "obj " + name;
+                }
                 return new IdentifierNode(name);
             case "condition:":
                 switch (prevNode.getMetaInfo()) {
@@ -225,6 +260,8 @@ public class ASTBuilder {
                     case "while_statement":
                         return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
                     case "for_statement":
+                        return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
+                    case "enhanced_for_statement":
                         return new InnerNode(NodeType.LOOP_BODY, lines[0], lines[1]);
                 }
                 return new UnknownNode(line);
