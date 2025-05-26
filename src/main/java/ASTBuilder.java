@@ -58,7 +58,7 @@ public class ASTBuilder {
     }
 
     public ASTNode buildAsts(String path, String langName) {
-        System.out.println(path);
+        // System.out.println(path);
         Language lang = langDict.get(langName);
         File code_file = new File(path);
         Vector<String> text = new Vector<>();

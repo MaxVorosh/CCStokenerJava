@@ -1,3 +1,4 @@
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Vector;
 
@@ -64,10 +65,12 @@ public class TokenBuilder {
 
     int parseMethod(ASTNode root, int[] tokenArr, StructNode structNode, HashSet<String> actionTokens) {
         // System.out.println("In");
+        int tokens = 0;
         if (root instanceof IdentifierNode) {
             // System.out.println(((IdentifierNode)root).name);
             structNode.type = StructNodeType.IDENTIFIER;
             structNode.mainIdentifier = ((IdentifierNode)root).name;
+            tokens += 1;
         }
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
@@ -111,6 +114,20 @@ public class TokenBuilder {
                     getIdentifiers(root.children.get(3), structNode.identifiers);
                 }
             }
+            Vector<NodeType> keywords = new Vector<>(Arrays.asList(
+                NodeType.IF_COND, NodeType.LOOP_BODY, NodeType.ASSERT_COND, NodeType.RETURN_STMT, 
+                NodeType.THROW_BODY, NodeType.TRY_BODY, NodeType.SWITCH_CONDITION, NodeType.CASE_BODY,
+                NodeType.CATCH_BODY, NodeType.LAMBDA_EXPR, NodeType.CLASS_ARRAY_CREATOR
+            ));
+            if (keywords.contains(node.type)) {
+                tokens += 1;
+            }
+        }
+        Vector<String> keywordsMeta = new Vector<>(Arrays.asList(
+            "continue_statement", "break_statement"
+        ));
+        if (keywordsMeta.contains(root.getMetaInfo())) {
+            tokens += 1;
         }
         for (int i = 0; i < tokenArr.length; ++i) {
             structNode.token[i] += tokenArr[i];
@@ -120,12 +137,12 @@ public class TokenBuilder {
         // System.out.println("");
         if (root instanceof ActionTokenNode) {
             actionTokens.add(((ActionTokenNode)root).getMetaInfo());
+            tokens += 1;
         }
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
             tokenArr[node.type.ordinal()] += 1;
         }
-        int tokens = 1;
         for (ASTNode ch : root.children) {
             StructNode child = new StructNode(StructNodeType.UNDEFINED);
             child.pr = structNode;
