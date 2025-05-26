@@ -87,7 +87,7 @@ public class TokenBuilder {
             else if (node.type == NodeType.ASSIGN_EXPR) {
                 Vector<String> v = new Vector<>();
                 getIdentifiers(root.children.get(0), v);
-                if (v.size() > 0) {
+                if (v.size() > 1) {
                     String name = v.get(0);
                     structNode.mainIdentifier = name;
                     getIdentifiers(root.children.get(1), structNode.identifiers);   
@@ -98,6 +98,9 @@ public class TokenBuilder {
                 if (structNode.identifiers.size() > 0) {
                     structNode.mainIdentifier = structNode.identifiers.get(0);
                     structNode.identifiers.remove(0);
+                }
+                if (!(root.parent != null && root.parent instanceof InnerNode && ((InnerNode)root.parent).type == NodeType.CATCH_BODY)) {
+                    structNode.token[node.type.ordinal()] += 1;
                 }
             }
             else if (node.type == NodeType.METHOD_DEF) {
@@ -140,6 +143,12 @@ public class TokenBuilder {
     void getIdentifiers(ASTNode root, Vector<String> ids) {
         if (root instanceof IdentifierNode) {
             ids.add(((IdentifierNode)root).name);
+            return;
+        }
+        if (root instanceof InnerNode && ((InnerNode)root).type == NodeType.METHOD_INVOC) {
+            for (int i = 1; i < root.children.size(); ++i) {
+                getIdentifiers(root.children.get(i), ids);
+            }
             return;
         }
         for (ASTNode ch : root.children) {

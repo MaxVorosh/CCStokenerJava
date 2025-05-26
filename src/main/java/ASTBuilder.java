@@ -49,8 +49,9 @@ public class ASTBuilder {
         nodeTypes.put("return_statement", NodeType.RETURN_STMT);
         nodeTypes.put("switch_block_statement_group", NodeType.CASE_BODY);
         nodeTypes.put("throw_statement", NodeType.THROW_BODY);
-        nodeTypes.put("catch_close", NodeType.CATCH_BODY);
-        nodeTypes.put("finally_close", NodeType.FINALLY_BODY);
+        nodeTypes.put("catch_clause", NodeType.CATCH_BODY);
+        nodeTypes.put("catch_formal_parameter", NodeType.VAR_DECL);
+        nodeTypes.put("finally_clause", NodeType.FINALLY_BODY);
         nodeTypes.put("array_creation_expression", NodeType.CLASS_ARRAY_CREATOR);
         nodeTypes.put("object_creation_expression", NodeType.CLASS_ARRAY_CREATOR);
         nodeTypes.put("lambda_expression", NodeType.LAMBDA_EXPR);
@@ -215,7 +216,7 @@ public class ASTBuilder {
             int[] r = getRange(args[2], args[4]);
             String name = text.get(r[0]).substring(r[1], r[2]);
             IdentifierNode innerNode = new IdentifierNode(name);
-            InnerNode declNode = new InnerNode(NodeType.VAR_DECL, lines[0], lines[1]);
+            InnerNode declNode = new InnerNode(NodeType.ARRAY_SELECTOR, lines[0], lines[1]);
             declNode.children.add(innerNode);
             return declNode;
         }
