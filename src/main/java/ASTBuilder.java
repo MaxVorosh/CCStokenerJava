@@ -162,17 +162,19 @@ public class ASTBuilder {
                 String from = args[args.length - 3];
                 String to = args[args.length - 1];
                 String[] prevArgs = prevNode.getMetaInfo().split(" ");
-                if (type.equals("left:")) {
-                    prevArgs[prevArgs.length - 3] = to;
-                    prevNode.setMetaInfo(String.join(" ", prevArgs));
-                }
-                else {
-                    int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                    if (r[1] >= r[2]) {
-                        // System.err.println("Parsing error");
+                if (prevArgs.length > 3) {
+                    if (type.equals("left:")) {
+                        prevArgs[prevArgs.length - 3] = to;
+                        prevNode.setMetaInfo(String.join(" ", prevArgs));
                     }
                     else {
-                        prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1], r[2]));
+                        int[] r = getRange(prevArgs[prevArgs.length - 3], from);
+                        if (r[1] >= r[2]) {
+                            // System.err.println("Parsing error");
+                        }
+                        else {
+                            prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1], r[2]));
+                        }
                     }
                 }
             }
