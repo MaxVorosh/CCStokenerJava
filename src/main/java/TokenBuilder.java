@@ -78,7 +78,12 @@ public class TokenBuilder {
                 // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
                 getIdentifiers(root, structNode.identifiers);
-                structNode.mainIdentifier = ((IdentifierNode)node.children.get(0)).name;
+                if (node.children.get(0) instanceof IdentifierNode) {
+                    structNode.mainIdentifier = ((IdentifierNode)node.children.get(0)).name;
+                }
+                else {
+                    structNode.mainIdentifier = "hard";
+                }
             }
             else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
@@ -133,7 +138,7 @@ public class TokenBuilder {
         }
         // System.out.println("");
         if (root instanceof ActionTokenNode) {
-            actionTokens.add(((ActionTokenNode)root).getMetaInfo());
+            actionTokens.add(((ActionTokenNode)root).getMetaInfo().split("\\.")[0]);
             tokens += 1;
         }
         if (root instanceof InnerNode) {
@@ -160,18 +165,12 @@ public class TokenBuilder {
             return;
         }
         if (root instanceof InnerNode && ((InnerNode)root).type == NodeType.METHOD_INVOC) {
-            // System.out.println("--->");
-            // System.out.println(root.children.size());
-            // if (root.children.size() > 0 && root.children.get(0) instanceof IdentifierNode) {
-                // System.out.println(String.format("%d %s", 0, (((IdentifierNode)root.children.get(0)).name)));
-            // }
-            for (int i = 1; i < root.children.size(); ++i) {
-                getIdentifiers(root.children.get(i), ids);
-                if (root.children.get(i) instanceof IdentifierNode) {
-                    // System.out.println(String.format("%d %s", i, (((IdentifierNode)root.children.get(i)).name)));
-                }
+            Vector<String> newIds = new Vector<>();
+            for (int i = 0; i < root.children.size(); ++i) {
+                getIdentifiers(root.children.get(i), newIds);
             }
-            // System.out.println("<---");
+            newIds.removeFirst();
+            ids.addAll(newIds);
             return;
         }
         for (ASTNode ch : root.children) {

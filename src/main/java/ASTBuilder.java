@@ -45,7 +45,6 @@ public class ASTBuilder {
         nodeTypes.put("alternative:", NodeType.IF_ELSE_BODY); //TODO in original instrument this does not exist
         nodeTypes.put("local_variable_declaration", NodeType.VAR_DECL);
         nodeTypes.put("array_access", NodeType.ARRAY_SELECTOR);
-        nodeTypes.put("method_invocation", NodeType.METHOD_INVOC);
         nodeTypes.put("return_statement", NodeType.RETURN_STMT);
         nodeTypes.put("switch_block_statement_group", NodeType.CASE_BODY);
         nodeTypes.put("throw_statement", NodeType.THROW_BODY);
@@ -101,7 +100,12 @@ public class ASTBuilder {
                 level = currentLevel;
             }
             else {
-                curNode.children.add(newNode);
+                if (line.startsWith("object:") && curNode.children.size() > 0) {
+                    curNode.children.set(0, newNode);
+                }
+                else {
+                    curNode.children.add(newNode);
+                }
                 newNode.parent = curNode;
                 curNode = newNode;
                 level = currentLevel;
@@ -131,6 +135,7 @@ public class ASTBuilder {
             node.parent.children.set(index, node);
             for (ASTNode child : root.children) {
                 node.children.add(child);
+                child.parent = node;
             }
             root = node;
         }
@@ -142,29 +147,6 @@ public class ASTBuilder {
             ASTNode betweenNode = new InnerNode(type, -1, -1);
             betweenNode.children.add(root);
             root.parent.children.set(index, betweenNode);
-        }
-        if (root instanceof InnerNode) {
-            InnerNode node = (InnerNode)root;
-            if (node.type == NodeType.METHOD_INVOC) {
-                if (node.children.size() == 0) {
-                    node.children.add(new IdentifierNode(""));
-                }
-                else {
-                    if (node.children.get(0) instanceof IdentifierNode) {
-                        IdentifierNode child = (IdentifierNode)node.children.get(0);
-                        if (child.name.startsWith("obj ")) {
-                            String name = child.name.split(" ")[1];
-                            child.name = name;
-                        }
-                        else {
-                            node.children.addFirst(new IdentifierNode(""));
-                        }
-                    }
-                    else {
-                        node.children.addFirst(new IdentifierNode(""));
-                    }
-                }
-            }
         }
         for (int i = 0; i < root.children.size(); ++i) {
             updateASTJava(root.children.get(i), i);
@@ -223,11 +205,7 @@ public class ASTBuilder {
             declNode.children.add(innerNode);
             return declNode;
         }
-        boolean isObj = false;
         if (type.equals("value:") || type.equals("name:") || type.equals("array:") || type.equals("object:") || type.equals("field:")) {
-            if (type.equals("object:")) {
-                isObj = true;
-            }
             args = Arrays.copyOfRange(args, 1, args.length);
             line = String.join(" ", args);
             type = args[0];
@@ -236,12 +214,10 @@ public class ASTBuilder {
             return new InnerNode(nodeTypes.get(type), lines[0], lines[1]);
         }
         switch (type) {
+            case "field_access":
             case "identifier":
                 int[] r = getRange(args[1], args[3]);
                 String name = text.get(r[0]).substring(r[1], r[2]);
-                if (isObj) {
-                    name = "obj " + name;
-                }
                 return new IdentifierNode(name);
             case "condition:":
                 switch (prevNode.getMetaInfo()) {
@@ -271,6 +247,11 @@ public class ASTBuilder {
                 return new UnknownNode(line);
             case "binary_expression":
                 return new UnknownNode(line);
+            case "method_invocation":
+                ASTNode node = new InnerNode(NodeType.METHOD_INVOC, lines[0], lines[1]);
+                ASTNode objNode = new IdentifierNode("");
+                node.children.add(objNode);
+                return node;
         }
         return new UnknownNode(type);
     }

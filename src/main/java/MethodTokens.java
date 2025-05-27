@@ -64,7 +64,7 @@ public class MethodTokens {
                     varToken[i] = token[i];
                 }
                 varToken[NodeType.METHOD_INVOC.ordinal()] += 1;
-                // System.out.println(mainObject);
+                // System.out.println(rootTree.mainIdentifier);
                 varVarTokens.add(varToken);
             }
             for (String rel : related) {
