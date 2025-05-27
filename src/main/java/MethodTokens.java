@@ -16,7 +16,6 @@ public class MethodTokens {
 
     MethodTokens(String path, int startLine, int endLine, StructNode root, int n) {
 
-        System.out.println("");
         actionTokens = new HashSet<>();
         varVarTokens = new Vector<>();
         varOpTokens = new Vector<>();
@@ -58,7 +57,7 @@ public class MethodTokens {
             for (int i = 0; i < 25; ++i) {
                 token[i] = rootTree.token[i];
             }
-            if (rootTree.mainIdentifier != "") {
+            if (rootTree.mainIdentifier != "" && rootTree.mainIdentifier != "hard") {
                 int[] varToken = new int[25];
                 for (int i = 0; i < 25; ++i) {
                     varToken[i] = token[i];
@@ -74,6 +73,15 @@ public class MethodTokens {
                 for (int i = 0; i < 25; ++i) {
                     token[i] += variables.get(rel).token[i];
                 }
+            }
+            if (rootTree.mainIdentifier == "hard") {
+                int[] varToken = new int[25];
+                for (int i = 0; i < 25; ++i) {
+                    varToken[i] = token[i];
+                }
+                varToken[NodeType.METHOD_INVOC.ordinal()] += 1;
+                // System.out.println(rootTree.mainIdentifier);
+                varVarTokens.add(varToken);
             }
             if (rootTree.type == StructNodeType.METHOD) {
                 varCalleeTokens.add(token);

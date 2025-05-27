@@ -75,7 +75,6 @@ public class TokenBuilder {
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
             if (node.type == NodeType.METHOD_INVOC) {
-                // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
                 getIdentifiers(root, structNode.identifiers);
                 if (node.children.get(0) instanceof IdentifierNode) {
@@ -84,9 +83,11 @@ public class TokenBuilder {
                 else {
                     structNode.mainIdentifier = "hard";
                 }
+                // System.out.println(String.format("Meth %s", structNode.mainIdentifier));
             }
             else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
+                getIdentifiers(root, structNode.identifiers);
                 // System.out.println("Op");
             }
             else if (node.type == NodeType.ASSIGN_EXPR) {
@@ -145,11 +146,26 @@ public class TokenBuilder {
             InnerNode node = (InnerNode)root;
             tokenArr[node.type.ordinal()] += 1;
         }
+        boolean isFirst = true;
+        boolean shouldDecr = root.children.size() > 0 && root.children.get(0) instanceof InnerNode && 
+                            ((InnerNode)root.children.get(0)).type == NodeType.METHOD_INVOC &&
+                             root instanceof InnerNode && ((InnerNode)root).type == NodeType.METHOD_INVOC;
         for (ASTNode ch : root.children) {
             StructNode child = new StructNode(StructNodeType.UNDEFINED);
             child.pr = structNode;
             structNode.childs.add(child);
+            if (isFirst && shouldDecr) {
+                tokenArr[NodeType.METHOD_INVOC.ordinal()] -= 1;
+            }
             tokens += parseMethod(ch, tokenArr, child, actionTokens);
+            if (isFirst && shouldDecr) {
+                tokenArr[NodeType.METHOD_INVOC.ordinal()] += 2;
+                structNode.token[NodeType.METHOD_INVOC.ordinal()] = child.token[NodeType.METHOD_INVOC.ordinal()] + 1;
+            }
+            isFirst = false;
+        }
+        if (!isFirst && shouldDecr) {
+            tokenArr[NodeType.METHOD_INVOC.ordinal()] -= 1;
         }
         if (root instanceof InnerNode) {
             InnerNode node = (InnerNode)root;
