@@ -151,7 +151,7 @@ public class ASTBuilder {
                 }
                 else {
                     if (node.children.get(0) instanceof IdentifierNode) {
-                        IdentifierNode child = (IdentifierNode)(node.children.get(0));
+                        IdentifierNode child = (IdentifierNode)node.children.get(0);
                         if (child.name.startsWith("obj ")) {
                             String name = child.name.split(" ")[1];
                             child.name = name;
@@ -159,6 +159,9 @@ public class ASTBuilder {
                         else {
                             node.children.addFirst(new IdentifierNode(""));
                         }
+                    }
+                    else {
+                        node.children.addFirst(new IdentifierNode(""));
                     }
                 }
             }
@@ -204,7 +207,7 @@ public class ASTBuilder {
             line = String.join(" ", args);
             type = args[0];
         }
-        if (type.equals("type:") || (type.equals("name:") && prevNode instanceof InnerNode && 
+        if (type.equals("type:") || type.equals("catch_type") || (type.equals("name:") && prevNode instanceof InnerNode &&
             (((InnerNode)prevNode).type == NodeType.METHOD_DEF || ((InnerNode)prevNode).type == NodeType.METHOD_INVOC))) {
             String from = args[args.length - 3];
             String to = args[args.length - 1];
@@ -221,7 +224,7 @@ public class ASTBuilder {
             return declNode;
         }
         boolean isObj = false;
-        if (type.equals("value:") || type.equals("name:") || type.equals("array:") || type.equals("object:")) {
+        if (type.equals("value:") || type.equals("name:") || type.equals("array:") || type.equals("object:") || type.equals("field:")) {
             if (type.equals("object:")) {
                 isObj = true;
             }

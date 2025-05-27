@@ -78,10 +78,7 @@ public class TokenBuilder {
                 // System.out.println("Meth");
                 structNode.type = StructNodeType.METHOD;
                 getIdentifiers(root, structNode.identifiers);
-                if (structNode.identifiers.size() > 0) {
-                    structNode.mainIdentifier = structNode.identifiers.get(0);
-                    structNode.identifiers.remove(0);
-                }
+                structNode.mainIdentifier = ((IdentifierNode)node.children.get(0)).name;
             }
             else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
@@ -89,8 +86,8 @@ public class TokenBuilder {
             }
             else if (node.type == NodeType.ASSIGN_EXPR) {
                 Vector<String> v = new Vector<>();
-                getIdentifiers(root.children.get(0), v);
-                if (v.size() > 1) {
+                if (root.children.get(0) instanceof IdentifierNode) {
+                    getIdentifiers(root.children.get(0), v);
                     String name = v.get(0);
                     structNode.mainIdentifier = name;
                     getIdentifiers(root.children.get(1), structNode.identifiers);   
@@ -107,11 +104,11 @@ public class TokenBuilder {
                 }
             }
             else if (node.type == NodeType.METHOD_DEF) {
-                if (root.children.size() == 3) {
-                    getIdentifiers(root.children.get(2), structNode.identifiers);
-                }
-                else {
-                    getIdentifiers(root.children.get(3), structNode.identifiers);
+                for (ASTNode ch : root.children) {
+                    if (ch.getMetaInfo().equals("parameters:")) {
+                        getIdentifiers(ch, structNode.identifiers);
+                        break;
+                    }
                 }
             }
             Vector<NodeType> keywords = new Vector<>(Arrays.asList(
@@ -163,9 +160,18 @@ public class TokenBuilder {
             return;
         }
         if (root instanceof InnerNode && ((InnerNode)root).type == NodeType.METHOD_INVOC) {
+            // System.out.println("--->");
+            // System.out.println(root.children.size());
+            // if (root.children.size() > 0 && root.children.get(0) instanceof IdentifierNode) {
+                // System.out.println(String.format("%d %s", 0, (((IdentifierNode)root.children.get(0)).name)));
+            // }
             for (int i = 1; i < root.children.size(); ++i) {
                 getIdentifiers(root.children.get(i), ids);
+                if (root.children.get(i) instanceof IdentifierNode) {
+                    // System.out.println(String.format("%d %s", i, (((IdentifierNode)root.children.get(i)).name)));
+                }
             }
+            // System.out.println("<---");
             return;
         }
         for (ASTNode ch : root.children) {

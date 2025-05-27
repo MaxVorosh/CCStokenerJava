@@ -20,7 +20,7 @@ public class Index {
         Vector<String> tokens = block.getActiveTokens();
         if (tokens.size() < k) {
             int id = block.getTokensNum();
-            if (id < 15) {
+            if (id < 40) {
                 return;
             }
             fw.addBlockDirect(smallPathDir, id, block);
@@ -51,7 +51,7 @@ public class Index {
         if (tokens.size() < k) {
             // return new Vector<>();
             int id = startBlock.getTokensNum();
-            if (id < 15) {
+            if (id < 40) {
                 return new Vector<>();
             }
             return fw.readBlocks(smallPathDir, id);
