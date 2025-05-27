@@ -185,7 +185,9 @@ public class TokenBuilder {
             for (int i = 0; i < root.children.size(); ++i) {
                 getIdentifiers(root.children.get(i), newIds);
             }
-            newIds.removeFirst();
+            if (newIds.size() > 0) {
+                newIds.removeFirst();
+            }
             ids.addAll(newIds);
             return;
         }
