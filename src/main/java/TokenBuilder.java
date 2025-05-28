@@ -12,9 +12,6 @@ public class TokenBuilder {
         this.n = n;
         methods = new Vector<>();
         banned = new HashSet<>();
-        // banned.add("103321.java");
-        // banned.add("47742.java");
-        // banned.add("123414.java");
     }
 
     void buildTokens(String path, String lang) {
@@ -50,7 +47,6 @@ public class TokenBuilder {
                 StructNode rootStruct = new StructNode(StructNodeType.UNDEFINED);
                 MethodTokens meth = new MethodTokens(path, ((InnerNode)root).startLine, ((InnerNode)root).endLine, rootStruct, n);
                 HashSet<String> methodActionTokens = new HashSet<>();
-                // System.out.println("================");
                 int tokens = parseMethod(root, tokenArr, rootStruct, methodActionTokens);
                 meth.root = rootStruct;
                 meth.tokensCnt = tokens;
@@ -64,10 +60,8 @@ public class TokenBuilder {
     }
 
     int parseMethod(ASTNode root, int[] tokenArr, StructNode structNode, HashSet<String> actionTokens) {
-        // System.out.println("In");
         int tokens = 0;
         if (root instanceof IdentifierNode) {
-            // System.out.println(((IdentifierNode)root).name);
             structNode.type = StructNodeType.IDENTIFIER;
             structNode.mainIdentifier = ((IdentifierNode)root).name;
             tokens += 1;
@@ -83,12 +77,10 @@ public class TokenBuilder {
                 else {
                     structNode.mainIdentifier = "hard";
                 }
-                // System.out.println(String.format("Meth %s", structNode.mainIdentifier));
             }
             else if (node.type == NodeType.LOGICAL_EXPR || node.type == NodeType.NUMERIC_EXPR || node.type == NodeType.CONDITION_EXPR) {
                 structNode.type = StructNodeType.OPERATION;
                 getIdentifiers(root, structNode.identifiers);
-                // System.out.println("Op");
             }
             else if (node.type == NodeType.ASSIGN_EXPR) {
                 Vector<String> v = new Vector<>();
@@ -134,10 +126,7 @@ public class TokenBuilder {
         }
         for (int i = 0; i < tokenArr.length; ++i) {
             structNode.token[i] += tokenArr[i];
-            // System.out.print(structNode.token[i]);
-            // System.out.print(' ');
         }
-        // System.out.println("");
         if (root instanceof ActionTokenNode) {
             actionTokens.add(((ActionTokenNode)root).getMetaInfo().split("\\.")[0]);
             tokens += 1;
@@ -171,7 +160,6 @@ public class TokenBuilder {
             InnerNode node = (InnerNode)root;
             tokenArr[node.type.ordinal()] -= 1;
         }
-        // System.out.println("Out");
         return tokens;
     }
 

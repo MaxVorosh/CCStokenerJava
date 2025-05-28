@@ -57,7 +57,6 @@ public class ASTBuilder {
     }
 
     public ASTNode buildAsts(String path, String langName) {
-        // System.out.println(path);
         Language lang = langDict.get(langName);
         File code_file = new File(path);
         Vector<String> text = new Vector<>();
@@ -78,7 +77,6 @@ public class ASTBuilder {
             TreeCursor cursor = tree.getRootNode().walk();
             SyntaxTreePrinter printer = new SyntaxTreePrinter(cursor);
             ast = printer.print();
-            // System.out.println(ast);
         } catch (Exception ex) {
             return null;
         }
@@ -176,9 +174,7 @@ public class ASTBuilder {
                     }
                     else {
                         int[] r = getRange(prevArgs[prevArgs.length - 3], from);
-                        if (r[1] >= r[2]) {
-                            // System.err.println("Parsing error");
-                        }
+                        if (r[1] >= r[2]) {}
                         else {
                             prevNode.setMetaInfo("expr " + text.get(r[0]).substring(r[1], r[2]));
                         }

@@ -49,7 +49,6 @@ public class Index {
         Set<Integer> usedBlocks = new HashSet<>();
         Vector<CodeBlock> v = new Vector<>();
         if (tokens.size() < k) {
-            // return new Vector<>();
             int id = startBlock.getTokensNum();
             if (id < 40) {
                 return new Vector<>();

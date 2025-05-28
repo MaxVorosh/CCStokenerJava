@@ -18,7 +18,5 @@ public class Runner {
         worker.processDir(tokenPath, processor, ind);
         long endTime = System.currentTimeMillis();
         System.out.println(String.format("%dms", endTime - startTime));
-        // BenchmarkValidator bv = new BenchmarkValidator();
-        // bv.runBenchmarkDir(args[0], "");
     }
 }

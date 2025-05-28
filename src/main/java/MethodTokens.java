@@ -63,7 +63,6 @@ public class MethodTokens {
                     varToken[i] = token[i];
                 }
                 varToken[NodeType.METHOD_INVOC.ordinal()] += 1;
-                // System.out.println(rootTree.mainIdentifier);
                 varVarTokens.add(varToken);
             }
             for (String rel : related) {
@@ -80,7 +79,6 @@ public class MethodTokens {
                     varToken[i] = token[i];
                 }
                 varToken[NodeType.METHOD_INVOC.ordinal()] += 1;
-                // System.out.println(rootTree.mainIdentifier);
                 varVarTokens.add(varToken);
             }
             if (rootTree.type == StructNodeType.METHOD) {
@@ -101,7 +99,6 @@ public class MethodTokens {
                             token[i] = 1;
                         }
                     }
-                    // System.out.println(var);
                     varVarTokens.add(token);
                     Variable v = new Variable(n);
                     v.setToken(token);
@@ -122,7 +119,6 @@ public class MethodTokens {
                         token[i] += variables.get(rel).token[i];
                     }
                 }
-                // System.out.println(rootTree.mainIdentifier);
                 varVarTokens.add(token);
                 if (variables.containsKey(rootTree.mainIdentifier)) {
                     variables.get(rootTree.mainIdentifier).setToken(token);

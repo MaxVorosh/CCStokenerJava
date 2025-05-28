@@ -65,8 +65,6 @@ public class FileWorker {
     }
 
     int parseFile(File file, Vector<CodeBlock> blocks, int size) {
-        // System.out.println(file.getName());
-        // System.out.println(size);
         CodeBlock currentBlock = new CodeBlock(size);
         ParseStage stage = ParseStage.SKIP;
         TokenCollection collection = new TokenCollection();
