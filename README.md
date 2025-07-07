@@ -6,7 +6,7 @@ This repository contains CCStokener implementation, written on Java.
 
 ## Build and Run
 
-Working with Java 21 and Gradle 4.4.1. Previous versions might not be supported.
+Working with Java 21 and Gradle 8.5. Previous versions might not be supported.
 
 If you want simply run this programm, you can use [build_run](./build_run.sh) script like this
 
@@ -15,6 +15,18 @@ sh build_run.sh <path_to_src_directory>
 ```
 
 If you want to tune java running arguments, you can use gradle commands.
+
+## Test
+
+You can run tests with [build_test](./build_test.sh) script like this
+
+```
+sh build_test.sh
+```
+
+If you want, you can use gradle commands instead.
+
+Also, [test directory](./src/test/testResults/) contains example of intermediate files format and result file example.
 
 ## Current results
 
