@@ -54,7 +54,8 @@ public class Processor {
         Vector<ClonePair> pairs = new Vector<>();
         Vector<CodeBlock> candidates = ind.getBlocks(block);
         for (CodeBlock otherBlock : candidates) {
-            if (otherBlock.hashCode() >= block.hashCode()) {
+            if (otherBlock.getTokensNum() == block.getTokensNum() && 
+                otherBlock.hashCode() >= block.hashCode()) {
                 continue;
             }
             boolean shouldFilter = block.shouldBeFiltered(otherBlock, beta, theta);
