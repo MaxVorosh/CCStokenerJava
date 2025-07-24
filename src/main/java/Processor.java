@@ -17,37 +17,20 @@ public class Processor {
     }
 
     float getSimilarity(CodeBlock first, CodeBlock second, CollectionType type) {
-        float res = 0;
-        float tr = 1;
-        float maxSize = Math.max(first.collectionSize(type), second.collectionSize(type));
-        if (maxSize == 0) {
+        if (first.collectionSize(type) == 0 && second.collectionSize(type) == 0) {
             return 1;
         }
-        while (tr > 0) {
-            for (int i = 0; i < first.collectionSize(type); ++i) {
-                if (first.isMarked(i, type)) {
-                    continue;
-                }
-                for (int j = 0; j < second.collectionSize(type); ++j) {
-                    if (second.isMarked(j, type)) {
-                        continue;
-                    }
-                    Token firstToken = first.getToken(i, type);
-                    Token secondToken = second.getToken(j, type);
-                    float sim = firstToken.sim(secondToken);
-                    if (sim > tr) {
-                        res += sim;
-                        first.markToken(i, type);
-                        second.markToken(j, type);
-                        break;
-                    }
-                }
-            }
-            tr -= phi;
+        float[] firstAvg = first.getCollectionAvg(type);
+        float[] secondAvg = second.getCollectionAvg(type);
+        float result = 0;
+        float firstLen = 0;
+        float secondLen = 0;
+        for (int i = 0; i < firstAvg.length; ++i) {
+            firstLen += firstAvg[i] * firstAvg[i];
+            secondLen += secondAvg[i] * secondAvg[i];
+            result += firstAvg[i] * secondAvg[i];
         }
-        first.reset(type);
-        second.reset(type);
-        return res / maxSize;
+        return (float)(result / Math.sqrt(firstLen) / Math.sqrt(secondLen));
     }
 
     Vector<ClonePair> getClonePairs(CodeBlock block, Index ind) {

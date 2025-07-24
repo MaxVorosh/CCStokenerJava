@@ -42,18 +42,6 @@ public class CodeBlock {
         }
     }
 
-    void markToken(int i, CollectionType type) {
-        if (type == CollectionType.VAR) {
-            vars.mark(i);
-        }
-        else if (type == CollectionType.OPERATION) {
-            ops.mark(i);
-        }
-        else if (type == CollectionType.CALLEE) {
-            callees.mark(i);
-        }
-    }
-
     Token getToken(int i, CollectionType type) {
         if (type == CollectionType.VAR) {
             return vars.get(i);
@@ -65,19 +53,6 @@ public class CodeBlock {
             return callees.get(i);
         }
         return null;
-    }
-
-    boolean isMarked(int i, CollectionType type) {
-        if (type == CollectionType.VAR) {
-            return vars.isMarked(i);
-        }
-        if (type == CollectionType.OPERATION) {
-            return ops.isMarked(i);
-        }
-        if (type == CollectionType.CALLEE) {
-            return callees.isMarked(i);
-        }
-        return false;
     }
 
     int collectionSize(CollectionType type) {
@@ -143,18 +118,16 @@ public class CodeBlock {
         return tokensNum;
     }
 
-    void reset(CollectionType type) {
+    float[] getCollectionAvg(CollectionType type) {
         if (type == CollectionType.VAR) {
-            vars.reset();
-            return;
+            return vars.getAvg();
         }
         if (type == CollectionType.OPERATION) {
-            ops.reset();
-            return;
+            return ops.getAvg();
         }
         if (type == CollectionType.CALLEE) {
-            callees.reset();
-            return;
+            return callees.getAvg();
         }
+        return new float[25];
     }
 }
