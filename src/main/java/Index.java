@@ -6,18 +6,20 @@ public class Index {
     String pathDir;
     boolean isSorted;
     int tokenCountDiffer;
+    boolean commonMode;
 
-    Index(String pathDir, int tokenCountDiffer) {
+    Index(String pathDir, int tokenCountDiffer, boolean commonMode) {
         tokenNumbers = new Vector<>();
+        this.commonMode = commonMode;
         uniqueTokenNumbers = new HashSet<>();
-        FileWorker fw = new FileWorker();
+        FileWorker fw = new FileWorker(commonMode);
         fw.updateDir(pathDir);
         this.pathDir = pathDir;
         this.tokenCountDiffer = tokenCountDiffer;
     }
 
     void addBlock(CodeBlock block) {
-        FileWorker fw = new FileWorker();
+        FileWorker fw = new FileWorker(commonMode);
         int id = block.getTokensNum();
         fw.addBlockDirect(pathDir, id, block);
         isSorted = false;
@@ -32,7 +34,7 @@ public class Index {
             isSorted = true;
             tokenNumbers.sort(null);
         }
-        FileWorker fw = new FileWorker();
+        FileWorker fw = new FileWorker(commonMode);
         Vector<CodeBlock> v = new Vector<>();
         int id = startBlock.getTokensNum();
         int innerCountDiffer = Math.max(tokenCountDiffer, id / 2);
