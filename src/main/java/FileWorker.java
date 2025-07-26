@@ -29,15 +29,10 @@ public class FileWorker {
             processDirAllSteps(dir, indexPath, tokenPath, nproc);
             return;
         }
-        // writeTokensDir(path, "", nproc);
-        writeTokensDir(path, "");
-        System.out.println("Tokens ready");
-        Index ind = new Index(indexPath, 50, commonMode);
-        parseDir(tokenPath, ind);
-        System.out.println("Index ready");
-        Processor processor = new Processor(0.5f, 0.4f, 0.65f);
-        // processDir(tokenPath, processor, ind, nproc);
-        processDir(tokenPath, processor, ind);
+        Vector<File> actualFiles = new Vector<>();
+        Vector<String> prefs = new Vector<>();
+        collectTokensDir(path, "", actualFiles, prefs);
+        processByFiles(actualFiles, prefs, nproc, tokenPath, indexPath);
     }
 
     void processDirAllSteps(File dir, String indexPath, String tokenPath, int nproc) {
@@ -51,7 +46,13 @@ public class FileWorker {
                 processDirAllSteps(file, indexPath, tokenPath, nproc);
             }
         }
-        writeTokensMultithreads(actualFiles, nproc);
+        processByFiles(actualFiles, new Vector<>(), nproc, tokenPath, indexPath);
+        removeFiles(tokenPath);
+        removeFiles(indexPath);
+    }
+
+    void processByFiles(Vector<File> actualFiles, Vector<String> prefs, int nproc, String tokenPath, String indexPath) {
+        writeTokensMultithreads(actualFiles, nproc, new Vector<>());
         File tokenDir = new File(tokenPath);
         File[] listOfTokenFiles = tokenDir.listFiles();
         Index ind = new Index(indexPath, 50, commonMode);
@@ -67,11 +68,9 @@ public class FileWorker {
         }
         Processor processor = new Processor(0.5f, 0.4f, 0.65f);
         writeClonesMultithreads(listOfTokenFiles, nproc, milestops, processor, ind);
-        removeFiles(tokenPath);
-        removeFiles(indexPath);
     }
 
-    void writeTokensMultithreads(Vector<File> actualFiles, int nproc) {
+    void writeTokensMultithreads(Vector<File> actualFiles, int nproc, Vector<String> prefs) {
         int chuncSize = actualFiles.size() / nproc;
         int lastChunc = actualFiles.size() - (nproc - 1) * chuncSize;
         Vector<Thread> threads = new Vector<>();
@@ -82,7 +81,12 @@ public class FileWorker {
             threads.add(new Thread(new Runnable() {
                 public void run() {
                     for (int j = startIndex; j < endIndex; ++j) {
-                        writeTokensFile(actualFiles.get(j), "");
+                        if (prefs.size() == 0) {
+                            writeTokensFile(actualFiles.get(j), "");
+                        }
+                        else {
+                            writeTokensFile(actualFiles.get(j), prefs.get(j));
+                        }
                     }
                 }
             }));
@@ -153,44 +157,6 @@ public class FileWorker {
             writeReport(pairs, "./clonepairs.txt");
         }
         return size;
-    }
-
-    void processDir(String path, Processor p, Index ind) {
-        File dir = new File(path);
-        processDirRaw(dir, p, ind);
-    }
-
-    private void processDirRaw(File dir, Processor p, Index ind) {
-        Vector<CodeBlock> blocks = new Vector<>();
-        int size = 0;
-        File[] listOfFiles = dir.listFiles();
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                size = getFileClones(file, p, ind, blocks, size);
-            }
-            else if (file.isDirectory()) {
-                processDirRaw(file, p, ind);
-            }
-        }
-    }
-
-    void parseDir(String path, Index ind) {
-        File dir = new File(path);
-        parseDirVector(dir, ind);
-    }
-
-    private void parseDirVector(File dir, Index ind) {
-        Vector<CodeBlock> blocks = new Vector<>();
-        int size = 0;
-        File[] listOfFiles = dir.listFiles();
-        for (File file : listOfFiles) {
-            if (file.isFile()) {
-                size = addFileToIndex(file, blocks, size, ind);
-            }
-            else if (file.isDirectory()) {
-                parseDirVector(file, ind);
-            }
-        }
     }
 
     int parseFile(File file, Vector<CodeBlock> blocks, int size) {
@@ -438,16 +404,17 @@ public class FileWorker {
         }
     }
 
-    void writeTokensDir(String path, String pref) {
+    void collectTokensDir(String path, String pref, Vector<File> actualFiles, Vector<String> prefs) {
         File dir = new File(path);
         File[] listOfFiles = dir.listFiles();
         if (listOfFiles != null) {
             for (File file : listOfFiles) {
                 if (file.isFile()) {
-                    writeTokensFile(file, pref);
+                    actualFiles.add(file);
+                    prefs.add(pref);
                 }
                 else if (file.isDirectory()) {
-                    writeTokensDir(file.getPath(), pref + file.getName() + "-");
+                    collectTokensDir(file.getPath(), pref + file.getName() + "-", actualFiles, prefs);
                 }
             }
         }
