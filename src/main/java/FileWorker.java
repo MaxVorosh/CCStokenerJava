@@ -23,22 +23,24 @@ public class FileWorker {
         this.commonMode = commonMode;
     }
 
-    void processAll(String path, String indexPath, String tokenPath) {
+    void processAll(String path, String indexPath, String tokenPath, int nproc) {
         if (!commonMode) {
             File dir = new File(path);
-            processDirAllSteps(dir, indexPath, tokenPath);
+            processDirAllSteps(dir, indexPath, tokenPath, nproc);
             return;
         }
+        // writeTokensDir(path, "", nproc);
         writeTokensDir(path, "");
         System.out.println("Tokens ready");
         Index ind = new Index(indexPath, 50, commonMode);
         parseDir(tokenPath, ind);
         System.out.println("Index ready");
         Processor processor = new Processor(0.5f, 0.4f, 0.65f);
+        // processDir(tokenPath, processor, ind, nproc);
         processDir(tokenPath, processor, ind);
     }
 
-    void processDirAllSteps(File dir, String indexPath, String tokenPath) {
+    void processDirAllSteps(File dir, String indexPath, String tokenPath, int nproc) {
         File[] listOfFiles = dir.listFiles();
         Vector<File> actualFiles = new Vector<>();
         for (File file : listOfFiles) {
@@ -46,27 +48,84 @@ public class FileWorker {
                 actualFiles.add(file);
             }
             else if (file.isDirectory()) {
-                processDirAllSteps(file, indexPath, tokenPath);
+                processDirAllSteps(file, indexPath, tokenPath, nproc);
             }
         }
-        for (File file : actualFiles) {
-            writeTokensFile(file, "");
-        }
+        writeTokensMultithreads(actualFiles, nproc);
         File tokenDir = new File(tokenPath);
         File[] listOfTokenFiles = tokenDir.listFiles();
         Index ind = new Index(indexPath, 50, commonMode);
         Vector<CodeBlock> blocks = new Vector<>();
         int size = 0;
-        for (File file : listOfTokenFiles) {
-            size = addFileToIndex(file, blocks, size, ind);
+        Vector<Integer> milestops = new Vector<>();
+        int chuncSize = listOfTokenFiles.length / nproc;
+        for (int i = 0; i < listOfTokenFiles.length; ++i) {
+            if (i % chuncSize == 0 && i / chuncSize < nproc) {
+                milestops.add(size);
+            }
+            size = addFileToIndex(listOfTokenFiles[i], blocks, size, ind);
         }
         Processor processor = new Processor(0.5f, 0.4f, 0.65f);
-        size = 0;
-        for (File file : listOfTokenFiles) {
-            size = getFileClones(file, processor, ind, blocks, size);
-        }
+        writeClonesMultithreads(listOfTokenFiles, nproc, milestops, processor, ind);
         removeFiles(tokenPath);
         removeFiles(indexPath);
+    }
+
+    void writeTokensMultithreads(Vector<File> actualFiles, int nproc) {
+        int chuncSize = actualFiles.size() / nproc;
+        int lastChunc = actualFiles.size() - (nproc - 1) * chuncSize;
+        Vector<Thread> threads = new Vector<>();
+        for (int i = 0; i < nproc; ++i) {
+            int currentSize = (i == nproc - 1) ? lastChunc : chuncSize;
+            int startIndex = chuncSize * i;
+            int endIndex = startIndex + currentSize;
+            threads.add(new Thread(new Runnable() {
+                public void run() {
+                    for (int j = startIndex; j < endIndex; ++j) {
+                        writeTokensFile(actualFiles.get(j), "");
+                    }
+                }
+            }));
+        }
+        for (Thread tr : threads) {
+            tr.start();
+        }
+        for (Thread tr : threads) {
+            try {
+                tr.join();
+            }
+            catch (Exception e) {}
+        }
+    }
+
+    void writeClonesMultithreads(File[] actualFiles, int nproc, Vector<Integer> milestops, Processor p, Index ind) {
+        int chuncSize = actualFiles.length / nproc;
+        int lastChunc = actualFiles.length - (nproc - 1) * chuncSize;
+        Vector<Thread> threads = new Vector<>();
+        for (int i = 0; i < nproc; ++i) {
+            int currentSize = (i == nproc - 1) ? lastChunc : chuncSize;
+            int startSize = milestops.get(i);
+            int startIndex = chuncSize * i;
+            int endIndex = startIndex + currentSize;
+            threads.add(new Thread(new Runnable() {
+                public void run() {
+                    int size = startSize;
+                    Vector<CodeBlock> blocks = new Vector<>();
+                    for (int j = startIndex; j < endIndex; ++j) {
+                        size = getFileClones(actualFiles[j], p, ind, blocks, size);
+                    }
+                }
+            }));
+        }
+        for (Thread tr : threads) {
+            tr.start();
+        }
+        for (Thread tr : threads) {
+            try {
+                tr.join();
+            }
+            catch (Exception e) {}
+        }
     }
 
     void removeFiles(String path) {
