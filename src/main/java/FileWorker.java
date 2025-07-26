@@ -23,6 +23,79 @@ public class FileWorker {
         this.commonMode = commonMode;
     }
 
+    void processAll(String path, String indexPath, String tokenPath) {
+        if (!commonMode) {
+            File dir = new File(path);
+            processDirAllSteps(dir, indexPath, tokenPath);
+            return;
+        }
+        writeTokensDir(path, "");
+        System.out.println("Tokens ready");
+        Index ind = new Index(indexPath, 50, commonMode);
+        parseDir(tokenPath, ind);
+        System.out.println("Index ready");
+        Processor processor = new Processor(0.5f, 0.4f, 0.65f);
+        processDir(tokenPath, processor, ind);
+    }
+
+    void processDirAllSteps(File dir, String indexPath, String tokenPath) {
+        File[] listOfFiles = dir.listFiles();
+        Vector<File> actualFiles = new Vector<>();
+        for (File file : listOfFiles) {
+            if (file.isFile()) {
+                actualFiles.add(file);
+            }
+            else if (file.isDirectory()) {
+                processDirAllSteps(file, indexPath, tokenPath);
+            }
+        }
+        for (File file : actualFiles) {
+            writeTokensFile(file, "");
+        }
+        File tokenDir = new File(tokenPath);
+        File[] listOfTokenFiles = tokenDir.listFiles();
+        Index ind = new Index(indexPath, 50, commonMode);
+        Vector<CodeBlock> blocks = new Vector<>();
+        int size = 0;
+        for (File file : listOfTokenFiles) {
+            size = addFileToIndex(file, blocks, size, ind);
+        }
+        Processor processor = new Processor(0.5f, 0.4f, 0.65f);
+        size = 0;
+        for (File file : listOfTokenFiles) {
+            size = getFileClones(file, processor, ind, blocks, size);
+        }
+        removeFiles(tokenPath);
+        removeFiles(indexPath);
+    }
+
+    void removeFiles(String path) {
+        File dir = new File(path);
+        File[] listOfFiles = dir.listFiles();
+        for (File file : listOfFiles) {
+            file.delete();
+        }
+    }
+
+    int addFileToIndex(File file, Vector<CodeBlock> blocks, int size, Index ind) {
+        blocks.clear();
+        size = parseFile(file, blocks, size);
+        for (CodeBlock block : blocks) {
+            ind.addBlock(block);
+        }
+        return size;
+    }
+
+    int getFileClones(File file, Processor p, Index ind, Vector<CodeBlock> blocks, int size) {
+        blocks.clear();
+        size = parseFile(file, blocks, size);
+        for (CodeBlock block : blocks) {
+            Vector<ClonePair> pairs = p.getClonePairs(block, ind);
+            writeReport(pairs, "./clonepairs.txt");
+        }
+        return size;
+    }
+
     void processDir(String path, Processor p, Index ind) {
         File dir = new File(path);
         processDirRaw(dir, p, ind);
@@ -34,12 +107,7 @@ public class FileWorker {
         File[] listOfFiles = dir.listFiles();
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                blocks.clear();
-                size = parseFile(file, blocks, size);
-                for (CodeBlock block : blocks) {
-                    Vector<ClonePair> pairs = p.getClonePairs(block, ind);
-                    writeReport(pairs, "./clonepairs.txt");
-                }
+                size = getFileClones(file, p, ind, blocks, size);
             }
             else if (file.isDirectory()) {
                 processDirRaw(file, p, ind);
@@ -58,11 +126,7 @@ public class FileWorker {
         File[] listOfFiles = dir.listFiles();
         for (File file : listOfFiles) {
             if (file.isFile()) {
-                blocks.clear();
-                size = parseFile(file, blocks, size);
-                for (CodeBlock block : blocks) {
-                    ind.addBlock(block);
-                }
+                size = addFileToIndex(file, blocks, size, ind);
             }
             else if (file.isDirectory()) {
                 parseDirVector(file, ind);

@@ -2,15 +2,10 @@ import java.util.Vector;
 
 public class Processor {
 
-    float phi; // Block similarity step
     float beta; // Same active token ratio threshold
     float theta; // Total token ratio threshold
     float eta; // Block similarity threshold
-    int k; // Index n-gram size
-    String indexDir;
-    String smallIndexDir;
-    Processor(float phi, float beta, float theta, float eta) {
-        this.phi = phi;
+    Processor(float beta, float theta, float eta) {
         this.beta = beta;
         this.theta = theta;
         this.eta = eta;
