@@ -29,6 +29,9 @@ public class Processor {
     }
 
     Vector<ClonePair> getClonePairs(CodeBlock block, Index ind) {
+        if (block.getTokensNum() <= 15) {
+            return new Vector<>();
+        }
         Vector<ClonePair> pairs = new Vector<>();
         Vector<CodeBlock> candidates = ind.getBlocks(block);
         for (CodeBlock otherBlock : candidates) {

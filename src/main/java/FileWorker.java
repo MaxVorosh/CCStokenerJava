@@ -52,6 +52,9 @@ public class FileWorker {
     }
 
     void processByFiles(Vector<File> actualFiles, Vector<String> prefs, int nproc, String tokenPath, String indexPath) {
+        if (actualFiles.size() == 0) {
+            return;
+        }
         writeTokensMultithreads(actualFiles, nproc, new Vector<>());
         File tokenDir = new File(tokenPath);
         File[] listOfTokenFiles = tokenDir.listFiles();
@@ -61,10 +64,15 @@ public class FileWorker {
         Vector<Integer> milestops = new Vector<>();
         int chuncSize = listOfTokenFiles.length / nproc;
         for (int i = 0; i < listOfTokenFiles.length; ++i) {
-            if (i % chuncSize == 0 && i / chuncSize < nproc) {
+            if (chuncSize != 0 && i % chuncSize == 0 && i / chuncSize < nproc) {
                 milestops.add(size);
             }
             size = addFileToIndex(listOfTokenFiles[i], blocks, size, ind);
+        }
+        if (chuncSize == 0) {
+            for (int i = 0; i < nproc; ++i) {
+                milestops.add(0);
+            }
         }
         Processor processor = new Processor(0.5f, 0.4f, 0.65f);
         writeClonesMultithreads(listOfTokenFiles, nproc, milestops, processor, ind);
