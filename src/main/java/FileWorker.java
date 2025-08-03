@@ -258,18 +258,20 @@ public class FileWorker {
     void writeReportBCB(Vector<ClonePair> clones, String path) {
         try {
             FileWriter fw = new FileWriter(path, true);
-            for (ClonePair pair : clones) {
-                CodeBlockInfo p1 = pair.first;
-                CodeBlockInfo p2 = pair.second;
-                String[] parts1 = p1.filename.split("/");
-                String[] parts2 = p2.filename.split("/");
-                int partsLength1 = parts1.length;
-                int partsLength2 = parts2.length;
-                fw.write(parts1[partsLength1 - 2] + "," + parts1[partsLength1 - 1] + "," + (p1.startLine + 1) + "," + (p1.endLine + 1) + "," +
-                        parts2[partsLength2 - 2] + "," + parts2[partsLength2 - 1] + "," + (p2.startLine + 1) + "," + (p2.endLine + 1) + "\n");
+            synchronized (this) {
+                for (ClonePair pair : clones) {
+                    CodeBlockInfo p1 = pair.first;
+                    CodeBlockInfo p2 = pair.second;
+                    String[] parts1 = p1.filename.split("/");
+                    String[] parts2 = p2.filename.split("/");
+                    int partsLength1 = parts1.length;
+                    int partsLength2 = parts2.length;
+                    fw.write(parts1[partsLength1 - 2] + "," + parts1[partsLength1 - 1] + "," + (p1.startLine + 1) + "," + (p1.endLine + 1) + "," +
+                        parts2[partsLength2 - 2] + "," + parts2[partsLength2 - 1] + "," + (p2.startLine + 1) + "," + (p2.endLine + 1) + "\n");   
+                }
+                fw.flush();
+                fw.close();
             }
-            fw.flush();
-            fw.close();
         } catch (IOException e) {
             System.err.println("Can't create report file");
         }
@@ -278,14 +280,16 @@ public class FileWorker {
     void writeReportCommon(Vector<ClonePair> clones, String path) {
         try {
             FileWriter fw = new FileWriter(path, true);
-            for (ClonePair pair : clones) {
-                CodeBlockInfo p1 = pair.first;
-                CodeBlockInfo p2 = pair.second;
-                fw.write(p1.filename + "," + (p1.startLine + 1) + "," + (p1.endLine + 1) + "," +
-                        p2.filename + "," + (p2.startLine + 1) + "," + (p2.endLine + 1) + "\n");
+            synchronized (this) {
+                for (ClonePair pair : clones) {
+                    CodeBlockInfo p1 = pair.first;
+                    CodeBlockInfo p2 = pair.second;
+                    fw.write(p1.filename + "," + (p1.startLine + 1) + "," + (p1.endLine + 1) + "," +
+                            p2.filename + "," + (p2.startLine + 1) + "," + (p2.endLine + 1) + "\n");
+                }
+                fw.flush();
+                fw.close();
             }
-            fw.flush();
-            fw.close();
         } catch (IOException e) {
             System.err.println("Can't create report file");
         }
