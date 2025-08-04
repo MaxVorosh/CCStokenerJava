@@ -3,6 +3,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Scanner;
 import java.util.Vector;
 import java.util.stream.Stream;
@@ -160,8 +161,15 @@ public class FileWorker {
     int getFileClones(File file, Processor p, Index ind, Vector<CodeBlock> blocks, int size) {
         blocks.clear();
         size = parseFile(file, blocks, size);
-        for (CodeBlock block : blocks) {
-            Vector<ClonePair> pairs = p.getClonePairs(block, ind);
+        
+        blocks.sort(new Comparator<CodeBlock>() {
+            public int compare(CodeBlock arg0, CodeBlock arg1) {
+                return arg0.getTokensNum() - arg1.getTokensNum();
+            }
+        });
+        
+        for (int i = 0; i < blocks.size(); ++i) {
+            Vector<ClonePair> pairs = p.getClonePairs(blocks.get(i), ind, i);
             writeReport(pairs, "./clonepairs.txt");
         }
         return size;

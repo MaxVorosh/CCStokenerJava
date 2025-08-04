@@ -29,7 +29,7 @@ public class Index {
         }
     }
 
-    Vector<CodeBlock> getBlocks(CodeBlock startBlock) {
+    Vector<CodeBlock> getBlocks(CodeBlock startBlock, int startIndex) {
         if (!isSorted) {
             isSorted = true;
             tokenNumbers.sort(null);
@@ -38,9 +38,8 @@ public class Index {
         Vector<CodeBlock> v = new Vector<>();
         int id = startBlock.getTokensNum();
         int innerCountDiffer = Math.max(tokenCountDiffer, id / 2);
-        int currentIndex = findIndex(id);
         int upper_bound = id + innerCountDiffer;
-        for (int i = currentIndex; i < tokenNumbers.size(); ++i) {
+        for (int i = startIndex + 1; i < tokenNumbers.size(); ++i) {
             if (tokenNumbers.get(i) > upper_bound) {
                 break;
             }
@@ -52,20 +51,5 @@ public class Index {
             }
         }
         return v;
-    }
-
-    int findIndex(int id) {
-        int left = 0;
-        int right = tokenNumbers.size();
-        while (right - left > 1) {
-            int mid = (left + right) / 2;
-            if (tokenNumbers.get(mid) < id) {
-                left = mid;
-            }
-            else {
-                right = mid;
-            }
-        }
-        return right;
     }
 }

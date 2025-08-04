@@ -28,12 +28,12 @@ public class Processor {
         return (float)(result / Math.sqrt(firstLen) / Math.sqrt(secondLen));
     }
 
-    Vector<ClonePair> getClonePairs(CodeBlock block, Index ind) {
+    Vector<ClonePair> getClonePairs(CodeBlock block, Index ind, int startIndex) {
         if (block.getTokensNum() <= 15) {
             return new Vector<>();
         }
         Vector<ClonePair> pairs = new Vector<>();
-        Vector<CodeBlock> candidates = ind.getBlocks(block);
+        Vector<CodeBlock> candidates = ind.getBlocks(block, startIndex);
         for (CodeBlock otherBlock : candidates) {
             if (otherBlock.getTokensNum() == block.getTokensNum() && 
                 otherBlock.hashCode() >= block.hashCode()) {
