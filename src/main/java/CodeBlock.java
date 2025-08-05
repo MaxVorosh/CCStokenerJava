@@ -1,6 +1,6 @@
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Vector;
+import java.util.HashMap;
 
 import static java.lang.Math.max;
 import static java.lang.Math.min;
@@ -11,7 +11,8 @@ public class CodeBlock {
     private TokenCollection ops;
     private TokenCollection callees;
 
-    private Vector<String> activeTokens;
+    private HashMap<String, Integer> activeTokens;
+    private int activeTokensCnt;
     private int id;
 
     private int tokensNum;
@@ -19,15 +20,23 @@ public class CodeBlock {
     private CodeBlockInfo info;
 
     CodeBlock(int id) {
-        activeTokens = new Vector<>();
+        activeTokens = new HashMap<>();
         vars = new TokenCollection();
         ops = new TokenCollection();
         callees = new TokenCollection();
         this.id = id;
+        activeTokensCnt = 0;
     }
 
     void addActiveToken(String token) {
-        activeTokens.add(token);
+        activeTokensCnt += 1;
+        if (!activeTokens.containsKey(token)) {
+            activeTokens.put(token, 1);
+        }
+        else {
+            Integer currentValue = activeTokens.get(token);
+            activeTokens.put(token, currentValue + 1);
+        }
     }
 
     void setCollection(TokenCollection collection, CollectionType type) {
@@ -68,7 +77,7 @@ public class CodeBlock {
         return 0;
     }
 
-    Vector<String> getActiveTokens() {
+    HashMap<String, Integer> getActiveTokens() {
         return activeTokens;
     }
 
@@ -78,11 +87,10 @@ public class CodeBlock {
     }
 
     int activeTokensOverlap(CodeBlock other) {
-        Set<String> tokens = new HashSet<>(activeTokens);
         int cnt = 0;
-        for (String token : other.activeTokens) {
-            if (tokens.contains(token)) {
-                cnt++;
+        for (String token : other.activeTokens.keySet()) {
+            if (activeTokens.containsKey(token)) {
+                cnt += Math.min(activeTokens.get(token), other.activeTokens.get(token));
             }
         }
         return cnt;
@@ -96,7 +104,7 @@ public class CodeBlock {
             return true;
         }
         int overlap = activeTokensOverlap(other);
-        float overlapRatio = overlap / (float) min(activeTokens.size(), other.activeTokens.size());
+        float overlapRatio = overlap / (float) min(activeTokensCnt, other.activeTokensCnt);
 
         return overlapRatio <= beta;
     }

@@ -309,8 +309,10 @@ public class FileWorker {
             FileWriter fw = new FileWriter(path, true);
             CodeBlockInfo info = value.getInfo();
             fw.write(String.format("New %d %d %s %d %d\n", value.hashCode(), value.getTokensNum(), info.filename, info.startLine, info.endLine));
-            for (String token : value.getActiveTokens()) {
-                fw.write(String.format("%s ", token));
+            for (String token : value.getActiveTokens().keySet()) {
+                for (int i = 0; i < value.getActiveTokens().get(token); ++i) {
+                    fw.write(String.format("%s ", token));
+                }
             }
             fw.write("\nVars\n");
             fw.write(value.collectionSize(CollectionType.VAR) + "\n");
