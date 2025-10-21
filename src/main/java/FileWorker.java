@@ -19,9 +19,15 @@ public class FileWorker {
     }
 
     private boolean commonMode;
+	private float beta;
+	private float theta;
+	private float eta;
 
-    FileWorker(boolean commonMode) {
+    FileWorker(boolean commonMode, float beta, float theta, float eta) {
         this.commonMode = commonMode;
+	this.beta = beta;
+	this.theta = theta;
+	this.eta = eta;
     }
 
     void processAll(String path, String indexPath, String tokenPath, int nproc) {
@@ -59,7 +65,7 @@ public class FileWorker {
         writeTokensMultithreads(actualFiles, nproc, new Vector<>());
         File tokenDir = new File(tokenPath);
         File[] listOfTokenFiles = tokenDir.listFiles();
-        Index ind = new Index(indexPath, 50, commonMode);
+        Index ind = new Index(indexPath, 50, commonMode, beta, theta, eta);
         Vector<CodeBlock> blocks = new Vector<>();
         int size = 0;
         Vector<Integer> milestops = new Vector<>();
@@ -75,7 +81,7 @@ public class FileWorker {
                 milestops.add(0);
             }
         }
-        Processor processor = new Processor(0.5f, 0.4f, 0.65f);
+        Processor processor = new Processor(beta, theta, eta);
         writeClonesMultithreads(listOfTokenFiles, nproc, milestops, processor, ind);
     }
 
