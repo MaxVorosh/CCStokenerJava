@@ -2,59 +2,41 @@ import java.util.Vector;
 
 public class Processor {
 
-    float phi; // Block similarity step
     float beta; // Same active token ratio threshold
     float theta; // Total token ratio threshold
     float eta; // Block similarity threshold
-    int k; // Index n-gram size
-    String indexDir;
-    String smallIndexDir;
-    Processor(float phi, float beta, float theta, float eta) {
-        this.phi = phi;
+    Processor(float beta, float theta, float eta) {
         this.beta = beta;
         this.theta = theta;
         this.eta = eta;
     }
 
     float getSimilarity(CodeBlock first, CodeBlock second, CollectionType type) {
-        float res = 0;
-        float tr = 1;
-        float maxSize = Math.max(first.collectionSize(type), second.collectionSize(type));
-        if (maxSize == 0) {
+        if (first.collectionSize(type) == 0 && second.collectionSize(type) == 0) {
             return 1;
         }
-        while (tr > 0) {
-            for (int i = 0; i < first.collectionSize(type); ++i) {
-                if (first.isMarked(i, type)) {
-                    continue;
-                }
-                for (int j = 0; j < second.collectionSize(type); ++j) {
-                    if (second.isMarked(j, type)) {
-                        continue;
-                    }
-                    Token firstToken = first.getToken(i, type);
-                    Token secondToken = second.getToken(j, type);
-                    float sim = firstToken.sim(secondToken);
-                    if (sim > tr) {
-                        res += sim;
-                        first.markToken(i, type);
-                        second.markToken(j, type);
-                        break;
-                    }
-                }
-            }
-            tr -= phi;
+        float[] firstAvg = first.getCollectionAvg(type);
+        float[] secondAvg = second.getCollectionAvg(type);
+        float result = 0;
+        float firstLen = 0;
+        float secondLen = 0;
+        for (int i = 0; i < firstAvg.length; ++i) {
+            firstLen += firstAvg[i] * firstAvg[i];
+            secondLen += secondAvg[i] * secondAvg[i];
+            result += firstAvg[i] * secondAvg[i];
         }
-        first.reset(type);
-        second.reset(type);
-        return res / maxSize;
+        return (float)(result / Math.sqrt(firstLen) / Math.sqrt(secondLen));
     }
 
-    Vector<ClonePair> getClonePairs(CodeBlock block, Index ind) {
+    Vector<ClonePair> getClonePairs(CodeBlock block, Index ind, int startIndex) {
+        if (block.getTokensNum() <= 15) {
+            return new Vector<>();
+        }
         Vector<ClonePair> pairs = new Vector<>();
-        Vector<CodeBlock> candidates = ind.getBlocks(block);
+        Vector<CodeBlock> candidates = ind.getBlocks(block, startIndex);
         for (CodeBlock otherBlock : candidates) {
-            if (otherBlock.hashCode() >= block.hashCode()) {
+            if (otherBlock.getTokensNum() == block.getTokensNum() && 
+                otherBlock.hashCode() >= block.hashCode()) {
                 continue;
             }
             boolean shouldFilter = block.shouldBeFiltered(otherBlock, beta, theta);

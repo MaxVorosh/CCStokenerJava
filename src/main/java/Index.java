@@ -1,86 +1,58 @@
 import java.util.*;
 
 public class Index {
-    Set<Integer> hashes;
-    int k; // Parameter for active token n-grams
+    Vector<Integer> tokenNumbers;
+    HashSet<Integer> uniqueTokenNumbers;
     String pathDir;
-    String smallPathDir;
+    boolean isSorted;
+    int tokenCountDiffer;
+    boolean commonMode;
+	float beta;
+	float theta;
+	float eta;
 
-    Index(String pathDir, String smallPathDir, int k) {
-        hashes = new HashSet<>();
-        this.k = k;
-        FileWorker fw = new FileWorker();
+    Index(String pathDir, int tokenCountDiffer, boolean commonMode, float beta, float theta, float eta) {
+        tokenNumbers = new Vector<>();
+        this.commonMode = commonMode;
+        uniqueTokenNumbers = new HashSet<>();
+        FileWorker fw = new FileWorker(commonMode, beta, theta, eta);
         fw.updateDir(pathDir);
         this.pathDir = pathDir;
-        this.smallPathDir = smallPathDir;
+        this.tokenCountDiffer = tokenCountDiffer;
+	this.beta = beta;
+	this.theta = theta;
+	this.eta = eta;
     }
 
     void addBlock(CodeBlock block) {
-        FileWorker fw = new FileWorker();
-        Vector<String> tokens = block.getActiveTokens();
-        if (tokens.size() < k) {
-            int id = block.getTokensNum();
-            if (id < 40) {
-                return;
-            }
-            fw.addBlockDirect(smallPathDir, id, block);
-            return;
-        }
-        tokens.sort(null);
-        Vector<String> window = new Vector<>();
-        for (int i = 0; i < k; ++i) {
-            window.add(tokens.get(i));
-        }
-        int h = String.join(" ", window).hashCode();
-        hashes.add(h);
-        fw.addBlockDirect(pathDir, h, block);
-        for (int i = k; i < tokens.size(); ++i) {
-            window.remove(0);
-            window.add(tokens.get(i));
-            h = String.join(" ", window).hashCode();
-            fw.addBlockDirect(pathDir, h, block);
-            hashes.add(h);
+        FileWorker fw = new FileWorker(commonMode, beta, theta, eta);
+        int id = block.getTokensNum();
+        fw.addBlockDirect(pathDir, id, block);
+        isSorted = false;
+        if (!uniqueTokenNumbers.contains(id)) {
+            uniqueTokenNumbers.add(id);
+            tokenNumbers.add(id);
         }
     }
 
-    Vector<CodeBlock> getBlocks(CodeBlock startBlock) {
-        Vector<String> tokens = startBlock.getActiveTokens();
-        FileWorker fw = new FileWorker();
-        Set<Integer> usedBlocks = new HashSet<>();
+    Vector<CodeBlock> getBlocks(CodeBlock startBlock, int startIndex) {
+        if (!isSorted) {
+            isSorted = true;
+            tokenNumbers.sort(null);
+        }
+        FileWorker fw = new FileWorker(commonMode, beta, theta, eta);
         Vector<CodeBlock> v = new Vector<>();
-        if (tokens.size() < k) {
-            int id = startBlock.getTokensNum();
-            if (id < 40) {
-                return new Vector<>();
+        int id = startBlock.getTokensNum();
+        int innerCountDiffer = Math.max(tokenCountDiffer, id / 2);
+        int upper_bound = id + innerCountDiffer;
+        for (int i = startIndex + 1; i < tokenNumbers.size(); ++i) {
+            if (tokenNumbers.get(i) > upper_bound) {
+                break;
             }
-            return fw.readBlocks(smallPathDir, id);
-        }
-        tokens.sort(null);
-        Vector<String> window = new Vector<>();
-        for (int i = 0; i < k; ++i) {
-            window.add(tokens.get(i));
-        }
-        int h = String.join(" ", window).hashCode();
-        if (hashes.contains(h)) {
-            Vector<CodeBlock> blocks = fw.readBlocks(pathDir, h);
+            Vector<CodeBlock> blocks = fw.readBlocks(pathDir, tokenNumbers.get(i));
             for (CodeBlock block : blocks) {
-                if (!usedBlocks.contains(block.hashCode())) {
-                    usedBlocks.add(block.hashCode());
+                if (block.hashCode() != startBlock.hashCode()) {
                     v.add(block);
-                }
-            }
-        }
-        for (int i = k; i < tokens.size(); ++i) {
-            window.remove(0);
-            window.add(tokens.get(i));
-            h = String.join(" ", window).hashCode();
-            if (hashes.contains(h)) {
-                Vector<CodeBlock> blocks = fw.readBlocks(pathDir, h);
-                for (CodeBlock block : blocks) {
-                    if (!usedBlocks.contains(block.hashCode())) {
-                        usedBlocks.add(block.hashCode());
-                        v.add(block);
-                    }
                 }
             }
         }
